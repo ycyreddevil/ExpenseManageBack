@@ -9,8 +9,30 @@
       <e p="Controllers" t="Include">
         <e p="ValuesController.cs" t="Include" />
       </e>
+      <e p="CustomModel" t="Include">
+        <e p="PageRequest.cs" t="Include" />
+        <e p="Response.cs" t="Include" />
+      </e>
       <e p="ExpenseManageBack.csproj" t="IncludeRecursive" />
       <e p="ExpenseManageBack.sln" t="IncludeFlat" />
+      <e p="Infrastructure" t="Include">
+        <e p="AutofacExt.cs" t="Include" />
+        <e p="AutoMapperExt.cs" t="Include" />
+        <e p="CacheContext.cs" t="Include" />
+        <e p="DataTableHelper.cs" t="Include" />
+        <e p="DynamicQueryable.cs" t="Include" />
+        <e p="Encrypt.cs" t="Include" />
+        <e p="EntityFrameworkCoreExtensions.cs" t="Include" />
+        <e p="ICacheContext.cs" t="Include" />
+        <e p="IUnitWork.cs" t="Include" />
+        <e p="Json.cs" t="Include" />
+        <e p="OrderLogistic.cs" t="Include" />
+        <e p="PinYinHelper.cs" t="Include" />
+        <e p="StringTools.cs" t="Include" />
+        <e p="TableData.cs" t="Include" />
+        <e p="UnitWork.cs" t="Include" />
+        <e p="yuyuDBContext.cs" t="Include" />
+      </e>
       <e p="obj" t="ExcludeRecursive">
         <e p="Debug" t="Include">
           <e p="netcoreapp2.1" t="Include">
@@ -23,6 +45,7 @@
       <e p="Properties" t="Include">
         <e p="launchSettings.json" t="Include" />
       </e>
+      <e p="README.md" t="Include" />
       <e p="Startup.cs" t="Include" />
       <e p="wwwroot" t="Include" />
     </e>
