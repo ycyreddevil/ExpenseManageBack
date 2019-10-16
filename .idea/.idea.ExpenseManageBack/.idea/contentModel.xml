@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Users\Administrator\.Rider2018.1\system\resharper-host\local\Transient\ReSharperHost\v12\SolutionCaches\_ExpenseManageBack.764308967.00" t="ExcludeRecursive" />
+    <e p="E:\ExpenseManageBack\ExpenseManageBack" t="IncludeRecursive">
+      <e p="appsettings.Development.json" t="Include" />
+      <e p="appsettings.json" t="Include" />
+      <e p="Bin" t="ExcludeRecursive" />
+      <e p="Controllers" t="Include">
+        <e p="ValuesController.cs" t="Include" />
+      </e>
+      <e p="ExpenseManageBack.csproj" t="IncludeRecursive" />
+      <e p="ExpenseManageBack.sln" t="IncludeFlat" />
+      <e p="obj" t="ExcludeRecursive">
+        <e p="Debug" t="Include">
+          <e p="netcoreapp2.1" t="Include">
+            <e p="ExpenseManageBack.AssemblyInfo.cs" t="Include" />
+          </e>
+        </e>
+      </e>
+      <e p="packages" t="ExcludeRecursive" />
+      <e p="Program.cs" t="Include" />
+      <e p="Properties" t="Include">
+        <e p="launchSettings.json" t="Include" />
+      </e>
+      <e p="Startup.cs" t="Include" />
+      <e p="wwwroot" t="Include" />
+    </e>
+  </component>
+</project>
