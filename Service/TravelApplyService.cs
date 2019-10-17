@@ -27,14 +27,24 @@ namespace ExpenseManageBack.Service
         /// <returns></returns>
         public TravelApply addOrDraft(TravelApply travelApply, JArray approverJArray, User userInfo)
         {
-            travelApply.DocCode = Encrypt.GenerateDocCode();
+            if (string.IsNullOrEmpty(travelApply.DocCode))
+                travelApply.DocCode = Encrypt.GenerateDocCode();
+            
             travelApply.WechatUserId = userInfo.WechatUserId;
             travelApply.UserName = userInfo.UserName;
             
             // 找部门id
-            travelApply.DepartmentId = _unitWork.FindSingle<Department>(u => u.Name.Equals(travelApply.DepartmentName)).Id;
+            if (!string.IsNullOrEmpty(travelApply.DepartmentName))
+                travelApply.DepartmentId = _unitWork.FindSingle<Department>(u => u.Name.Equals(travelApply.DepartmentName)).Id;
             
-            _unitWork.Add(travelApply);
+            // 处理总金额
+            travelApply.TotalMoney = travelApply.AccomodationFee + travelApply.TicketFee + travelApply.TollFee +
+                                     travelApply.TravelAllowance;
+            
+            if (!_unitWork.IsExist<TravelApply>(u => u.DocCode.Equals(travelApply.DocCode)))
+                _unitWork.Add(travelApply);
+            else
+                _unitWork.Update(travelApply);
             
             if (travelApply.Status.Equals("已提交"))
             {
@@ -103,6 +113,7 @@ namespace ExpenseManageBack.Service
             // 首先第一级是自己
             var level = 0;
             var approverJObject = new JObject
+                
             {
                 ["name"] = user.UserName,
                 ["wechatUserId"] = user.WechatUserId,
@@ -340,7 +351,7 @@ namespace ExpenseManageBack.Service
 
             if (year != 0 && month != 0)
             {
-                iQueryableList = iQueryableList.Where(u => u.Date.Year == year && u.Date.Month == month - 1);
+                iQueryableList = iQueryableList.Where(u => u.Date.Year == year && u.Date.Month == month);
             }
 
             return iQueryableList.ToList();
@@ -534,6 +545,30 @@ namespace ExpenseManageBack.Service
         public void withraw()
         {
             
+        }
+
+        /// <summary>
+        /// 查询差旅申请单据详情
+        /// </summary>
+        /// <param name="docCode"></param>
+        /// <returns></returns>
+        public Dictionary<string, object> getByCode(string docCode)
+        {
+            var data = _unitWork.FindSingle<TravelApply>(u => u.DocCode.Equals(docCode));
+
+            var record = _unitWork.Find<ApprovalRecord>(u =>
+                u.DocCode.Equals(data.DocCode) && u.DocumentTableName.Equals("差旅申请")).ToList();
+
+            var approver = _unitWork
+                .Find<ApprovalApprover>(
+                    u => u.DocCode.Equals(data.DocCode) && u.DocumentTableName.Equals("差旅申请")).ToList();
+
+            var result = new Dictionary<string, object>
+            {
+                {"data", data}, {"record", record}, {"approver", approver}
+            };
+            
+            return result;
         }
     }
 }

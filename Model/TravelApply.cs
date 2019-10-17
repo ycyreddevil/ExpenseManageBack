@@ -1,9 +1,11 @@
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace ExpenseManageBack.Model
 {
+    [Table("travel_apply")]
     public class TravelApply
     {
         public int Id { get; set; }

@@ -224,5 +224,27 @@ namespace ExpenseManageBack.Controllers
             
             return resp;
         }
+
+        /// <summary>
+        /// 查询差旅申请单据详情
+        /// </summary>
+        /// <param name="docCode"></param>
+        /// <returns></returns>
+        public Response<Dictionary<string, object>> getByCode(string docCode)
+        {
+            var result = new Response<Dictionary<string, object>>();
+
+            try
+            {
+                result.Result = _service.getByCode(docCode);
+            }
+            catch (Exception e)
+            {
+                result.code = 500;
+                result.message = e.Message;
+            }
+
+            return result;
+        }
     }
 }
