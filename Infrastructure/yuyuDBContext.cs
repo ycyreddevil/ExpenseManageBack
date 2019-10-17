@@ -1,3 +1,4 @@
+using ExpenseManageBack.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace yuyu.Infrastructure
@@ -8,6 +9,6 @@ namespace yuyu.Infrastructure
             : base(options)
         { }
 
-//        public virtual DbSet<Shipper> Shippers { get; set; }
+        public virtual DbSet<Product> Products { get; set; }
     }
 }

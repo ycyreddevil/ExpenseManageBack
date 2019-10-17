@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ExpenseManageBack.CustomModel;
+using ExpenseManageBack.Model;
 using ExpenseManageBack.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,7 +37,76 @@ namespace ExpenseManageBack.Controllers
                 resp.message = e.Message;
             }
             
-            return null;
+            return resp;
+        }
+        
+        /// <summary>
+        /// 产品首页 通过名字查询产品
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<Product>> getProductByName(string name)
+        {
+            var resp = new Response<List<Product>>();
+
+            try
+            {
+                resp.Result = _service.getProductByName(name);
+            }
+            catch (Exception e)
+            {
+                resp.code = 500;
+                resp.message = e.Message;
+            }
+            
+            return resp;
+        }
+        
+        /// <summary>
+        /// 通过编号查询产品
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<Product> getProductByCode(string code)
+        {
+            var resp = new Response<Product>();
+
+            try
+            {
+                resp.Result = _service.getProductByCode(code);
+            }
+            catch (Exception e)
+            {
+                resp.code = 500;
+                resp.message = e.Message;
+            }
+            
+            return resp;
+        }
+        
+        /// <summary>
+        /// 删除产品
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response deleteProduct(string code)
+        {
+            var resp = new Response();
+
+            try
+            {
+                _service.deleteProduct(code);
+            }
+            catch (Exception e)
+            {
+                resp.code = 500;
+                resp.message = e.Message;
+            }
+            
+            return resp;
         }
     }
 }
