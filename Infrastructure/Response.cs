@@ -8,8 +8,8 @@
 
         public Response()
         {
-            this.message = "success";
-            this.code = 200;
+            message = "success";
+            code = 200;
         }
     }
 
