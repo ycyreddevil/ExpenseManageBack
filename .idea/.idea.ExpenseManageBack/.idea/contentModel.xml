@@ -15,6 +15,7 @@
       </e>
       <e p="ExpenseManageBack.csproj" t="IncludeRecursive" />
       <e p="ExpenseManageBack.sln" t="IncludeFlat" />
+      <e p="Image" t="Include" />
       <e p="Infrastructure" t="Include">
         <e p="AutofacExt.cs" t="Include" />
         <e p="AutoMapperExt.cs" t="Include" />

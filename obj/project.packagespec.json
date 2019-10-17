@@ -73,11 +73,11 @@
         },
         "Swashbuckle.AspNetCore": {
           "target": "Package",
-          "version": "[5.0.0-rc4, )"
+          "version": "[4.0.1, )"
         },
         "Swashbuckle.AspNetCore.SwaggerUI": {
           "target": "Package",
-          "version": "[5.0.0-rc4, )"
+          "version": "[4.0.1, )"
         },
         "Z.EntityFramework.Plus.EFCore": {
           "target": "Package",
