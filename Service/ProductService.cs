@@ -68,6 +68,26 @@ namespace ExpenseManageBack.Service
         public void deleteProduct(string code)
         {
             _unitWork.Delete<Product>(u => u.Code.Equals(code));
+            _unitWork.Save();
+        }
+
+        /// <summary>
+        /// 新增或更新 产品
+        /// </summary>
+        /// <param name="product"></param>
+        public void addOrUpdateProduct(Product product)
+        {
+            if (product.Id != null && product.Id != 0)
+            {
+                // 更新
+                _unitWork.Update(product);
+            }
+            else
+            {
+                // 新增
+                _unitWork.Add(product);
+            }
+            _unitWork.Save();
         }
     }
 }

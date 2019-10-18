@@ -108,5 +108,28 @@ namespace ExpenseManageBack.Controllers
             
             return resp;
         }
+        
+        /// <summary>
+        /// 新增或更新 产品
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response addOrUpdateProduct(Product product)
+        {
+            var resp = new Response();
+
+            try
+            {
+                _service.addOrUpdateProduct(product);
+            }
+            catch (Exception e)
+            {
+                resp.code = 500;
+                resp.message = e.Message;
+            }
+            
+            return resp;
+        }
     }
 }
