@@ -10,7 +10,11 @@ namespace yuyu.Infrastructure
         { }
 
         public virtual DbSet<Product> Products { get; set; }
-        public virtual DbSet<Client> Clients { get; set; }
-        public virtual DbSet<ClientType> ClientTypes { get; set; }
+        public virtual DbSet<Flow> Flows { get; set; }
+
+        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Department> Departments { get; set; }
+//        public virtual DbSet<Client> Clients { get; set; }
+//        public virtual DbSet<ClientType> ClientTypes { get; set; }
     }
 }
