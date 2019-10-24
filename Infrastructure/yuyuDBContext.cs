@@ -14,7 +14,7 @@ namespace yuyu.Infrastructure
 
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Department> Departments { get; set; }
-//        public virtual DbSet<Client> Clients { get; set; }
-//        public virtual DbSet<ClientType> ClientTypes { get; set; }
+        public virtual DbSet<Client> Clients { get; set; }
+        public virtual DbSet<ClientType> ClientTypes { get; set; }
     }
 }
