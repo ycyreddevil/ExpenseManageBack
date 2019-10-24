@@ -79,5 +79,23 @@ namespace ExpenseManageBack.Service
             _unitWork.Delete<Flow>(u => u.Id == flowId);
             _unitWork.Save();
         }
+
+        /// <summary>
+        /// 审批流新增或更新
+        /// </summary>
+        /// <param name="flow"></param>
+        public void addOrUpdate(Flow flow)
+        {
+            if (flow.Id != 0)
+            {
+                _unitWork.Update(flow);
+            }
+            else
+            {
+                _unitWork.Add(flow);
+            }
+            
+            _unitWork.Save();
+        }
     }
 }

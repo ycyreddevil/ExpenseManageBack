@@ -155,5 +155,28 @@ namespace ExpenseManageBack.Controllers
             
             return resp;
         }
+
+        /// <summary>
+        /// 审批流新增或更新
+        /// </summary>
+        /// <param name="flow"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response addOrUpdateFlow(Flow flow)
+        {
+            var resp = new Response();
+
+            try
+            {
+                _service.addOrUpdate(flow);
+            }
+            catch (Exception e)
+            {
+                resp.code = 500;
+                resp.message = e.Message;
+            }
+            
+            return resp;
+        }
     }
 }
