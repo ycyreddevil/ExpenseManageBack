@@ -11,7 +11,7 @@ namespace ExpenseManageBack.Model
         public string Status { get; set; }
         public string Type { get; set; }
         public string Json { get; set; }
-        public string UserId { get; set; }
+        public string UserName { get; set; }
         public DateTime ModifyTime { get; set; }
 
         public Flow()
@@ -21,7 +21,7 @@ namespace ExpenseManageBack.Model
             Status = string.Empty;
             Type = string.Empty;
             Json = string.Empty;
-            UserId = string.Empty;
+            UserName = string.Empty;
             ModifyTime = DateTime.Now;
         }
     }

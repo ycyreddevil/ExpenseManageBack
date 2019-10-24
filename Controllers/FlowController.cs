@@ -155,5 +155,51 @@ namespace ExpenseManageBack.Controllers
             
             return resp;
         }
+
+        /// <summary>
+        /// 审批流新增或更新
+        /// </summary>
+        /// <param name="flow"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<Flow> addOrUpdateFlow(Flow flow)
+        {
+            var resp = new Response<Flow>();
+
+            try
+            {
+                resp.Result = _service.addOrUpdate(flow);
+            }
+            catch (Exception e)
+            {
+                resp.code = 500;
+                resp.message = e.Message;
+            }
+            
+            return resp;
+        }
+
+        /// <summary>
+        /// 根据id获取审批流详情
+        /// </summary>
+        /// <param name="flowId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<Flow> getFlowById(int flowId)
+        {
+            var res = new Response<Flow>();
+
+            try
+            {
+                res.Result = _service.getFlowById(flowId);
+            }
+            catch (Exception e)
+            {
+                res.code = 500;
+                res.message = e.Message;
+            }
+            
+            return res;
+        }
     }
 }

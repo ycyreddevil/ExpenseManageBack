@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using ExpenseManageBack.Model;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Remotion.Linq.Parsing.ExpressionVisitors.MemberBindings;
 using yuyu.Infrastructure;
 using yuyu.Service;
@@ -10,7 +11,8 @@ namespace ExpenseManageBack.Service
     public class FlowService : BaseService
     {
         private IUnitWork _unitWork { get; set; }
-        
+        private HostingApplication.Context _context { get; set; }
+
         public FlowService(IUnitWork unitWork) : base(unitWork)
         {
             _unitWork = unitWork;
@@ -78,6 +80,37 @@ namespace ExpenseManageBack.Service
         {
             _unitWork.Delete<Flow>(u => u.Id == flowId);
             _unitWork.Save();
+        }
+
+        /// <summary>
+        /// 审批流新增或更新
+        /// </summary>
+        /// <param name="flow"></param>
+        /// <returns></returns>
+        public Flow addOrUpdate(Flow flow)
+        {
+            if (flow.Id != 0)
+            {
+                _unitWork.Update(flow);
+            }
+            else
+            {
+                _unitWork.Add(flow);
+            }
+            
+            _unitWork.Save();
+
+            return flow;
+        }
+
+        /// <summary>
+        /// 根据id获取审批流详情
+        /// </summary>
+        /// <param name="flowId"></param>
+        /// <returns></returns>
+        public Flow getFlowById(int flowId)
+        {
+            return _unitWork.FindSingle<Flow>(u => u.Id == flowId);
         }
     }
 }
