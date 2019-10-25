@@ -96,6 +96,8 @@ namespace ExpenseManageBack
                     Path.Combine(Directory.GetCurrentDirectory(), @"Image")),
                 RequestPath = new PathString("/Image")
             });
+
+            app.UseSession();
         }
     }
 }

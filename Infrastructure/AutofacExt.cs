@@ -15,6 +15,7 @@ namespace yuyu.Infrastructure
             var builder = new ContainerBuilder();
             
             services.AddScoped(typeof(IUnitWork), typeof(UnitWork));
+            services.AddSession();
 
             builder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly());
             builder.RegisterAssemblyTypes();
