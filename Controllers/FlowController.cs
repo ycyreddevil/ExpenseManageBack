@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ExpenseManageBack.CustomModel;
 using ExpenseManageBack.Model;
 using ExpenseManageBack.Service;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseManageBack.Controllers
@@ -12,10 +13,12 @@ namespace ExpenseManageBack.Controllers
     public class FlowController : ControllerBase
     {
         private FlowService _service;
+        private IHttpContextAccessor _accessor;
 
-        public FlowController(FlowService flowService)
+        public FlowController(FlowService flowService, IHttpContextAccessor accessor)
         {
             _service = flowService;
+            _accessor = accessor;
         }
 
         /// <summary>
