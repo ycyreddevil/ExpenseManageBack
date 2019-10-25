@@ -112,5 +112,37 @@ namespace yuyu.Infrastructure
             }
             return result.ToString();
         }
+
+        /// <summary>
+        /// 获取随机码包含字母和数字，不带“_”
+        /// </summary>
+        /// <param name="len"></param>
+        /// <returns></returns>
+        public static string GetRandomCodeN(int len)
+        {
+            int count = len / 32 + 1;
+            string code = "";
+            for(int i=0;i<count;i++)
+            {
+                code += Guid.NewGuid().ToString("N");
+            }
+            return code.Substring(0, len);
+        }
+
+        /// <summary>
+        /// 获取随机码包含字母和数字，带“_”
+        /// </summary>
+        /// <param name="len"></param>
+        /// <returns></returns>
+        public static string GetRandomCodeD(int len)
+        {
+            int count = len / 32 + 1;
+            string code = "";
+            for (int i = 0; i < count; i++)
+            {
+                code += Guid.NewGuid().ToString("D");
+            }
+            return code.Substring(0, len);
+        }
     }
 }
