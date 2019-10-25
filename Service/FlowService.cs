@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using ExpenseManageBack.Model;
-using Microsoft.AspNetCore.Hosting.Internal;
 using Remotion.Linq.Parsing.ExpressionVisitors.MemberBindings;
 using yuyu.Infrastructure;
 using yuyu.Service;
@@ -11,8 +10,7 @@ namespace ExpenseManageBack.Service
     public class FlowService : BaseService
     {
         private IUnitWork _unitWork { get; set; }
-        private HostingApplication.Context _context { get; set; }
-
+        
         public FlowService(IUnitWork unitWork) : base(unitWork)
         {
             _unitWork = unitWork;
