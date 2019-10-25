@@ -22,8 +22,10 @@ namespace ExpenseManageBack.Infrastructure
 
         public string GetToken()
         {
+            string token = "";
             CookieHelper cookie = new CookieHelper(Context);
 
+            return token;
         }
     }
 }
