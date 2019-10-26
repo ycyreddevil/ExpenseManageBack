@@ -16,6 +16,7 @@ namespace ExpenseManageBack.Infrastructure
         private string AppSecret = "";
         private string AgentId = "";
         private HttpContext Context;
+        private int UserInfoSaveCookieDays = 30;
         public string RedirectUri { get; set; }
 
         public WxHelper(string appSecret,string agentId,HttpContext context)
@@ -59,7 +60,7 @@ namespace ExpenseManageBack.Infrastructure
             }
         }
 
-        private void GotoGetCode()
+        private string GotoGetCode()
         {
             string randomString = Encrypt.GetRandomCodeN(16);
             //Context.Session["randomString"] = randomString;
@@ -72,20 +73,72 @@ namespace ExpenseManageBack.Infrastructure
                 + "&redirect_uri={1}&response_type=code&scope=snsapi_base&agentid={2}&state={3}#wechat_redirect"
                 , CorpId, HttpUtility.UrlEncode(RedirectUri), AgentId, randomString);
             Context.Response.Redirect(urlForGettingCode, false);
+            return urlForGettingCode;
         }
 
+        private string GetWxUserId(string code, string token)
+        {
+            string url = string.Format("https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token={0}&code={1}",
+                token, code);
+            string res = HttpHelper.Get(url);
+            Dictionary<string, object> dict = Json.ToObject<Dictionary<string, object>>(res);
+            if (!dict.Keys.Contains("UserId"))
+            {
+                return res;
+            }
+            else
+                return dict["UserId"].ToString();
+        }
+
+        /// <summary>
+        /// 用于验证用户是否登录并同时获取当前用户信息
+        /// </summary>
+        /// <returns></returns>
         public Response CheckAndGetUserInfo()
         {
             Response res = new Response();
             User user = Json.ToObject<User>(Context.Session.GetString("user"));
             if(user==null)
             {
-                //string code = Context.Request. ["code"];
-                //string state = Context.Request["state"];
-                //string randomString = Context.Session.GetString("randomString");
-                //string WxToken = GetWxToken();
-                //CookieHelper cookie = new CookieHelper(Context);
-                //string UserId = CookieHelper.GetCookieValueStatic("UserId");
+                string WxToken = "";
+                if(!GetToken(out WxToken))//获取企业微信token失败
+                {
+                    res.code = 1;
+                    res.message = WxToken;
+                    return res;
+                }
+                string code = Context.Request.Query["code"];
+                string state = Context.Request.Query["state"];
+                string randomString = Context.Session.GetString("randomString");
+                
+                CookieHelper cookie = new CookieHelper(Context);
+                string UserId = cookie.GetValue("UserId");
+                if(string.IsNullOrEmpty(UserId))
+                {
+                    //randomString和state用来防止csrf攻击（跨站请求伪造攻击）
+                    if (string.IsNullOrEmpty(code)
+                        || string.IsNullOrEmpty(randomString)
+                        || !string.Equals(state, randomString))
+                    {
+                        res.code = 2;//跳转url至获取code页面
+                        res.message = GotoGetCode();
+                        return res;
+                    }
+                    else
+                    {                        
+                        UserId = GetWxUserId(code, WxToken);
+                        if(string.IsNullOrEmpty(UserId) || UserId.Contains("errcode"))
+                        {
+                            res.code = 3;//读取userid报错
+                            res.message = UserId;
+                            return res;
+                        }
+                        else
+                            cookie.AddCookie("UserId", UserId, DateTime.Now.AddDays(UserInfoSaveCookieDays));
+                    }
+                }
+
+                res.message = UserId;
             }
 
             return res;
