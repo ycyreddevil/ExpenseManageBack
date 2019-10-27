@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using ExpenseManageBack.CustomModel;
@@ -19,11 +20,30 @@ namespace ExpenseManageBack.Infrastructure
         private int UserInfoSaveCookieDays = 30;
         public string RedirectUri { get; set; }
 
-        public WxHelper(string appSecret,string agentId,HttpContext context)
+        public WxHelper(string name,HttpContext context,string redirectUri="")
         {
-            AppSecret = appSecret;
-            AgentId = agentId;
+            WxParameter wxP = new WxParameter("app1");
+            AppSecret = wxP.App.Secret;
+            AgentId = wxP.App.AgentId;
+            CorpId = wxP.CorpId;
+            UserInfoSaveCookieDays = wxP.UserInfoSaveCookieDays;
             Context = context;
+            if (string.IsNullOrEmpty(redirectUri))
+                RedirectUri = GetAbsoluteUri(context.Request);
+            else
+                RedirectUri = redirectUri;
+        }
+
+        private string GetAbsoluteUri(HttpRequest request)
+        {
+            return new StringBuilder()
+                .Append(request.Scheme)
+                .Append("://")
+                .Append(request.Host)
+                .Append(request.PathBase)
+                .Append(request.Path)
+                .Append(request.QueryString)
+                .ToString();
         }
 
         public bool GetToken(out string token)

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using ExpenseManageBack.CustomModel;
+using ExpenseManageBack.Infrastructure;
 using ExpenseManageBack.Model;
 using ExpenseManageBack.Service;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseManageBack.Controllers
@@ -13,9 +15,13 @@ namespace ExpenseManageBack.Controllers
     {
         private ClientService serv;
 
-        public ClientController(ClientService clientService)
+        private IHttpContextAccessor _accessor;
+
+        public ClientController(ClientService clientService, IHttpContextAccessor accessor)
         {
             serv = clientService;
+            _accessor = accessor;
+            WxHelper wx = new WxHelper("app1", _accessor.HttpContext);
         }
 
         [HttpPost]

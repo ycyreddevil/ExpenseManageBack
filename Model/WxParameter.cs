@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using ExpenseManageBack.Infrastructure;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +15,11 @@ namespace ExpenseManageBack.Model
         private List<WxApp> Apps { get; set; }
         public WxApp App { get; set; }
 
-        public WxParameter(IConfiguration config,string appName)
-        {
-            CorpId = config["WxParameter:CorpId"];
-            UserInfoSaveCookieDays= Convert.ToInt32(config["WxParameter:UserInfoSaveCookieDays"]);
-            Apps = Json.ToObject<List<WxApp>>(config["WxParameter:Apps"]);
+        public WxParameter(string appName)
+        {            
+            CorpId = AppSettingHelper.GetSection("WxParameter:CorpId");
+            UserInfoSaveCookieDays= Convert.ToInt32(AppSettingHelper.GetSection("WxParameter:UserInfoSaveCookieDays"));
+            Apps = Json.ToObject<List<WxApp>>(AppSettingHelper.GetSection("WxParameter:Apps"));
             App = null;
             foreach(WxApp app in Apps)
             {
