@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using Remotion.Linq.Parsing.ExpressionVisitors.MemberBindings;
 
 namespace ExpenseManageBack.Model
@@ -16,6 +17,8 @@ namespace ExpenseManageBack.Model
         public string Avatar { get; set;}
         public string Status { get; set; }
         public string Address { get; set; }
+        public string Token { get; set; }
+        public DateTime LastLoginTime { get; set; }
 
         public User()
         {
@@ -29,6 +32,8 @@ namespace ExpenseManageBack.Model
             Avatar = string.Empty;
             Status = string.Empty;
             Address = string.Empty;
+            Token = string.Empty;
+            LastLoginTime = DateTime.Now;
         }
     }
 }

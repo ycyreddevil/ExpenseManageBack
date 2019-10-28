@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using ExpenseManageBack.CustomModel;
+using ExpenseManageBack.Infrastructure;
 using ExpenseManageBack.Model;
 using ExpenseManageBack.Service;
 using Microsoft.AspNetCore.Mvc;
+using yuyu.Infrastructure;
 
 namespace ExpenseManageBack.Controllers
 {
@@ -12,10 +14,12 @@ namespace ExpenseManageBack.Controllers
     public class ProductController : ControllerBase
     {
         private ProductService _service;
+        private WxHelper _wxHelper;
 
-        public ProductController(ProductService productService)
+        public ProductController(ProductService productService, WxHelper wxHelper)
         {
             _service = productService;
+            _wxHelper = wxHelper;
         }
 
         /// <summary>
@@ -26,6 +30,8 @@ namespace ExpenseManageBack.Controllers
         public Response<Dictionary<string, object>> getProductList()
         {
             var resp = new Response<Dictionary<string, object>>();
+            
+            _wxHelper = new WxHelper("", null, "");
 
             try
             {

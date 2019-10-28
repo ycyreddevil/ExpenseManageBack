@@ -22,7 +22,12 @@ namespace ExpenseManageBack.Infrastructure
         public string RedirectUri { get; set; }
         private IUnitWork unitWork { get; set; }
 
-        public WxHelper(string name,HttpContext context,IUnitWork _unitWork, string redirectUri = "") : base(_unitWork)
+        public WxHelper(IUnitWork _unitWork) : base(_unitWork)
+        {
+            unitWork = _unitWork;
+        }
+
+        public WxHelper(string name, HttpContext context, string redirectUri) : base(null)
         {
             WxParameter wxP = new WxParameter("app1");
             AppSecret = wxP.App.Secret;
@@ -30,7 +35,7 @@ namespace ExpenseManageBack.Infrastructure
             CorpId = wxP.CorpId;
             UserInfoSaveCookieDays = wxP.UserInfoSaveCookieDays;
             Context = context;
-            unitWork = _unitWork;
+            
             if (string.IsNullOrEmpty(redirectUri))
                 RedirectUri = GetAbsoluteUri(context.Request);
             else
