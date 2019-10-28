@@ -21,7 +21,8 @@ namespace ExpenseManageBack.Controllers
         {
             serv = clientService;
             _accessor = accessor;
-            WxHelper wx = new WxHelper("app1", _accessor.HttpContext);
+            //WxHelper wx = new WxHelper("app1", _accessor.HttpContext);
+
         }
 
         [HttpPost]
