@@ -7,12 +7,13 @@ using System.Web;
 using ExpenseManageBack.CustomModel;
 using ExpenseManageBack.Model;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using yuyu.Infrastructure;
-using yuyu.Service;
+using ExpenseManageBack.Service;
 
 namespace ExpenseManageBack.Infrastructure
 {
-    public class WxHelper : BaseService
+    public class WxHelper 
     {
         private string CorpId = "";
         private string AppSecret = "";
@@ -20,9 +21,9 @@ namespace ExpenseManageBack.Infrastructure
         private HttpContext Context;
         private int UserInfoSaveCookieDays = 30;
         public string RedirectUri { get; set; }
-        private IUnitWork unitWork { get; set; }
+        private WxHelperService serv = null;
 
-        public WxHelper(string name,HttpContext context,IUnitWork _unitWork, string redirectUri = "") : base(_unitWork)
+        public WxHelper(string name,HttpContext context, string redirectUri = "")
         {
             WxParameter wxP = new WxParameter("app1");
             AppSecret = wxP.App.Secret;
@@ -30,11 +31,11 @@ namespace ExpenseManageBack.Infrastructure
             CorpId = wxP.CorpId;
             UserInfoSaveCookieDays = wxP.UserInfoSaveCookieDays;
             Context = context;
-            unitWork = _unitWork;
             if (string.IsNullOrEmpty(redirectUri))
                 RedirectUri = GetAbsoluteUri(context.Request);
             else
                 RedirectUri = redirectUri;
+            serv = serv = new WxHelperService();
         }
 
         private string GetAbsoluteUri(HttpRequest request)
