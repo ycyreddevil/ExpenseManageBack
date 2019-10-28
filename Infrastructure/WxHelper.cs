@@ -35,7 +35,7 @@ namespace ExpenseManageBack.Infrastructure
                 RedirectUri = GetAbsoluteUri(context.Request);
             else
                 RedirectUri = redirectUri;
-            serv = serv = new WxHelperService();
+            serv = new WxHelperService();
         }
 
         private string GetAbsoluteUri(HttpRequest request)
