@@ -18,10 +18,10 @@ namespace ExpenseManageBack.Infrastructure
         private string CorpId = "";
         private string AppSecret = "";
         private string AgentId = "";
+        private string AppName = "";
         private HttpContext Context;
         private int UserInfoSaveCookieDays = 30;
         public string RedirectUri { get; set; }
-        private WxHelperService serv = null;
 
         public WxHelper(string name,HttpContext context, string redirectUri = "")
         {
@@ -29,13 +29,13 @@ namespace ExpenseManageBack.Infrastructure
             AppSecret = wxP.App.Secret;
             AgentId = wxP.App.AgentId;
             CorpId = wxP.CorpId;
+            AppName = wxP.App.Name;
             UserInfoSaveCookieDays = wxP.UserInfoSaveCookieDays;
             Context = context;
             if (string.IsNullOrEmpty(redirectUri))
                 RedirectUri = GetAbsoluteUri(context.Request);
             else
                 RedirectUri = redirectUri;
-            serv = new WxHelperService();
         }
 
         private string GetAbsoluteUri(HttpRequest request)
@@ -53,12 +53,16 @@ namespace ExpenseManageBack.Infrastructure
         public bool GetToken(out string token)
         {
             bool res = true;
-            CookieHelper cookie = new CookieHelper(Context);
-            token = cookie.GetValue(AppSecret + "Token");
-            if(string.IsNullOrEmpty(token))
+            //CookieHelper cookie = new CookieHelper(Context);
+            //token = cookie.GetValue(AppSecret + "Token");
+            string sql = string.Format("select Token from wx_token where ValidityTime < NOW()");
+            object obj = SqlHelper.Scalar(sql);
+            if (obj == null)
             {
                 res = GetTokenFromWx(out token);
             }
+            else
+                token = obj.ToString();
             return res;
         }
 
@@ -76,11 +80,26 @@ namespace ExpenseManageBack.Infrastructure
             }
             else
             {
-                CookieHelper cookie = new CookieHelper(Context);
+                //CookieHelper cookie = new CookieHelper(Context);
                 int expires_in = Convert.ToInt32(dict["expires_in"]);
-                cookie.AddCookie(AppSecret + "Token", dict["access_token"].ToString(), DateTime.Now.AddSeconds(expires_in));
+                //cookie.AddCookie(AppSecret + "Token", dict["access_token"].ToString(), DateTime.Now.AddSeconds(expires_in));
                 token = dict["access_token"].ToString();
-                return true;
+                Dictionary<string, string> dictNew = new Dictionary<string, string>();
+                dictNew.Add("Name", AppName + "_Token");
+                dictNew.Add("Token", token);
+                dictNew.Add("ValidityTime", DateTime.Now.AddSeconds(expires_in).ToString("G"));
+                string sql = string.Format("delete from wx_token where Name='{0}'\r\n;", AppName + "_Token");
+                sql += SqlHelper.GetInsertString(dictNew, "wx_token");
+                SqlResult eRes = new SqlResult(SqlHelper.Exce(sql));
+                if(eRes.IsAllSuccess)
+                {
+                    return true;
+                }
+                else
+                {
+                    token = Json.ToJson(eRes.ErrList);
+                    return false;
+                }
             }
         }
 
