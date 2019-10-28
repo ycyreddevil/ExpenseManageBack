@@ -14,12 +14,10 @@ namespace ExpenseManageBack.Controllers
     public class ProductController : ControllerBase
     {
         private ProductService _service;
-        private WxHelper _wxHelper;
 
         public ProductController(ProductService productService, WxHelper wxHelper)
         {
             _service = productService;
-            _wxHelper = wxHelper;
         }
 
         /// <summary>
@@ -31,8 +29,6 @@ namespace ExpenseManageBack.Controllers
         {
             var resp = new Response<Dictionary<string, object>>();
             
-            _wxHelper = new WxHelper("", null, "");
-
             try
             {
                 resp.Result = _service.getProductList();
