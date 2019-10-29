@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Data;
 using System.Threading.Tasks;
 using System.Web;
 using ExpenseManageBack.CustomModel;
@@ -13,7 +14,7 @@ using ExpenseManageBack.Service;
 
 namespace ExpenseManageBack.Infrastructure
 {
-    public class WxHelper 
+    public class WxHelper
     {
         private string CorpId = "";
         private string AppSecret = "";
@@ -23,7 +24,7 @@ namespace ExpenseManageBack.Infrastructure
         private int UserInfoSaveCookieDays = 30;
         public string RedirectUri { get; set; }
 
-        public WxHelper(string name,HttpContext context, string redirectUri = "")
+        public WxHelper(string name, HttpContext context, string redirectUri = "")
         {
             WxParameter wxP = new WxParameter("app1");
             AppSecret = wxP.App.Secret;
@@ -50,7 +51,7 @@ namespace ExpenseManageBack.Infrastructure
                 .ToString();
         }
 
-        public bool GetToken(out string token)
+        public bool GetWxToken(out string token)
         {
             bool res = true;
             //CookieHelper cookie = new CookieHelper(Context);
@@ -59,14 +60,14 @@ namespace ExpenseManageBack.Infrastructure
             object obj = SqlHelper.Scalar(sql);
             if (obj == null)
             {
-                res = GetTokenFromWx(out token);
+                res = GetWxTokenFromWx(out token);
             }
             else
                 token = obj.ToString();
             return res;
         }
 
-        private bool GetTokenFromWx(out string token)
+        private bool GetWxTokenFromWx(out string token)
         {
             string url = string.Format("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={0}&corpsecret={1}",
                CorpId, AppSecret);
@@ -91,7 +92,7 @@ namespace ExpenseManageBack.Infrastructure
                 string sql = string.Format("delete from wx_token where Name='{0}'\r\n;", AppName + "_Token");
                 sql += SqlHelper.GetInsertString(dictNew, "wx_token");
                 SqlResult eRes = new SqlResult(SqlHelper.Exce(sql));
-                if(eRes.IsAllSuccess)
+                if (eRes.IsAllSuccess)
                 {
                     return true;
                 }
@@ -133,55 +134,130 @@ namespace ExpenseManageBack.Infrastructure
                 return dict["UserId"].ToString();
         }
 
-        /// <summary>
-        /// 用于验证用户是否登录并同时获取当前用户信息
-        /// </summary>
-        /// <returns></returns>
-        public Response CheckAndGetUserInfo()
+        private Response<User> GetUserInfo()
         {
-            Response res = new Response();
-            User user = Json.ToObject<User>(Context.Session.GetString("user"));
-            if(user==null)
+            Response<User> res = new Response<User>();
+            string WxToken = "";
+
+            string code = Context.Request.Query["code"];
+            string state = Context.Request.Query["state"];
+            string randomString = Context.Session.GetString("randomString");
+            string UserId = "";
+            //randomString和state用来防止csrf攻击（跨站请求伪造攻击）
+            if (string.IsNullOrEmpty(code)
+                || string.IsNullOrEmpty(randomString)
+                || !string.Equals(state, randomString))
             {
-                string WxToken = "";
-                if(!GetToken(out WxToken))//获取企业微信token失败
+                res.code = 2;//跳转url至获取code页面
+                res.message = GotoGetCode();
+                return res;
+            }
+            else
+            {
+                if (!GetWxToken(out WxToken))//获取企业微信token失败
                 {
                     res.code = 1;
                     res.message = WxToken;
                     return res;
                 }
-                string code = Context.Request.Query["code"];
-                string state = Context.Request.Query["state"];
-                string randomString = Context.Session.GetString("randomString");
-                
-                CookieHelper cookie = new CookieHelper(Context);
-                string UserId = cookie.GetValue("UserId");
-                if(string.IsNullOrEmpty(UserId))
+                UserId = GetWxUserId(code, WxToken);
+                if (string.IsNullOrEmpty(UserId) || UserId.Contains("errcode"))
                 {
-                    //randomString和state用来防止csrf攻击（跨站请求伪造攻击）
-                    if (string.IsNullOrEmpty(code)
-                        || string.IsNullOrEmpty(randomString)
-                        || !string.Equals(state, randomString))
-                    {
-                        res.code = 2;//跳转url至获取code页面
-                        res.message = GotoGetCode();
-                        return res;
-                    }
-                    else
-                    {                        
-                        UserId = GetWxUserId(code, WxToken);
-                        if(string.IsNullOrEmpty(UserId) || UserId.Contains("errcode"))
-                        {
-                            res.code = 3;//读取userid报错
-                            res.message = UserId;
-                            return res;
-                        }
-                        else
-                            cookie.AddCookie("UserId", UserId, DateTime.Now.AddDays(UserInfoSaveCookieDays));
-                    }
+                    res.code = 3;//读取userid报错
+                    res.message = UserId;
+                    return res;
                 }
+                else
+                {
+                    res = GetUserInfoById(UserId);
+                }
+                //cookie.AddCookie("UserId", UserId, DateTime.Now.AddDays(UserInfoSaveCookieDays));
+            }
+            return res;
+        }
 
-                res.message = UserId;
+        public Response<User> GetUserInfoById(string Id)
+        {
+            Response<User> res = new Response<User>();
+            string sql = string.Format("select * from user where WechatUserId='{0}'", Id);
+            string msg = "";
+            DataSet ds = SqlHelper.Find(sql, ref msg);
+            if (ds == null)
+            {
+                res.code = 100;
+                res.message = msg;
+            }
+            else
+            {
+                if (ds.Tables[0].Rows.Count == 0)
+                {
+                    res.code = 2;
+                    res.message = "UserId错误！";
+                }
+                else
+                {
+                    res.Result = ModelHelper<User>.FillModel(ds.Tables[0].Rows[0]);
+                }
+            }
+            return res;
+        }
+
+        public Response<User> GetUserInfoByToken(string token)
+        {
+            Response<User> res = new Response<User>();
+            string sql = string.Format("select * from user where Token='{0}' and LastLoginTime > NOW()", token);
+            string msg = "";
+            DataSet ds = SqlHelper.Find(sql, ref msg);
+            if (ds == null)
+            {
+                res.code = 100;
+                res.message = msg;
+            }
+            else
+            {
+                if (ds.Tables[0].Rows.Count == 0)
+                {
+                    res.code = 2;
+                    res.message = "token错误或过有效期！";
+                }
+                else
+                {
+                    res.Result = ModelHelper<User>.FillModel(ds.Tables[0].Rows[0]);
+                }
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// 用于验证用户是否登录并同时获取当前用户信息
+        /// </summary>
+        /// <returns></returns>
+        public Response<User> CheckAndGetUserInfo()
+        {
+            Response<User> res = new Response<User>();
+            //User user = Json.ToObject<User>(Context.Session.GetString("user"));
+            string token = Context.Request.Query["token"];
+            if (token == null)
+            {
+                res.code = 1;
+                res.message = "非法请求！";
+            }
+            else
+            {
+                Response<User> uRes = GetUserInfoByToken(token);
+                if (uRes.code == 100)//数据库报错
+                {
+                    res.code = 100;
+                    res.message = uRes.message;
+                }
+                else if (uRes.code == 2)//token错误或过有效期！
+                {
+
+                }
+                else//成功获取用户信息
+                {
+                    res = uRes;
+                }
             }
 
             return res;
