@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using yuyu.Infrastructure;
 using ExpenseManageBack.Service;
+using Newtonsoft.Json.Linq;
 
 namespace ExpenseManageBack.Infrastructure
 {
@@ -185,6 +186,23 @@ namespace ExpenseManageBack.Infrastructure
             }
 
             return res;
+        }
+        
+        public string SendWxMsg(string paraJson)
+        {
+            GetTokenFromWx(out var token);
+            var url = string.Format("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + token);
+        
+            return HttpHelper.Post(url,paraJson);
+        }
+
+        public string GetJsonAndSendWxMsg(string ids, string description, string url, string agentId)
+        {
+            var jObject = new JObject {{"touser", ids}, {"msgtype", "textcard"}, {"agentid", agentId}};
+            var innerJObject = new JObject {{"title", "审批通知"}, {"description", description}, {"url", url}};
+            jObject.Add("textcard", innerJObject);
+
+            return SendWxMsg(jObject.ToString());
         }
     }
 }
