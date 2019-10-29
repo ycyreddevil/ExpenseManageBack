@@ -266,7 +266,7 @@ namespace ExpenseManageBack.Infrastructure
         
         public string SendWxMsg(string paraJson)
         {
-            GetTokenFromWx(out var token);
+            GetWxTokenFromWx(out var token);
             var url = string.Format("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + token);
         
             return HttpHelper.Post(url,paraJson);
