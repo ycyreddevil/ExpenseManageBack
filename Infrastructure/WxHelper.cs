@@ -253,7 +253,7 @@ namespace ExpenseManageBack.Infrastructure
                 }
                 else if (uRes.code == 2)//token错误或过有效期！
                 {
-
+                    res = GetUserInfo();
                 }
                 else//成功获取用户信息
                 {
@@ -266,7 +266,7 @@ namespace ExpenseManageBack.Infrastructure
         
         public string SendWxMsg(string paraJson)
         {
-            GetWxTokenFromWx(out var token);
+            GetWxToken(out var token);
             var url = string.Format("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + token);
         
             return HttpHelper.Post(url,paraJson);

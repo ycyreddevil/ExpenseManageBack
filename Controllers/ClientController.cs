@@ -14,15 +14,21 @@ namespace ExpenseManageBack.Controllers
     public class ClientController : ControllerBase
     {
         private ClientService serv;
-
+        private User user;
         private IHttpContextAccessor _accessor;
 
         public ClientController(ClientService clientService, IHttpContextAccessor accessor)
         {
             serv = clientService;
             _accessor = accessor;
-            //WxHelper wx = new WxHelper("app1", _accessor.HttpContext);
+            WxHelper wx = new WxHelper("app1", _accessor.HttpContext);
+            Response<User> res = wx.CheckAndGetUserInfo();
+            if (res.code == 200)
+                user = res.Result;
+            else//直接返回错误信息！
+            {
 
+            }
         }
 
         [HttpPost]
