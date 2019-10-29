@@ -5,6 +5,7 @@ using ExpenseManageBack.Model;
 using ExpenseManageBack.Service;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
+using yuyu.Infrastructure;
 
 namespace ExpenseManageBack.Controllers
 {
@@ -22,14 +23,14 @@ namespace ExpenseManageBack.Controllers
         /// </summary>
         /// <param name="travelApply"></param>
         /// <returns></returns>
-        [HttpPost]
-        public Response<TravelApply> addOrUpdate(TravelApply travelApply)
+        [HttpGet]
+        public Response<TravelApply> addOrDraft(string travelApply, string department, string approver)
         {
             var resp = new Response<TravelApply>();
 
             try
             {
-                resp.Result = _service.addOrUpdate(travelApply);
+                resp.Result = _service.addOrDraft(travelApply.ToObject<TravelApply>(), department, approver.ToObject<JArray>());
             }
             catch (Exception e)
             {
@@ -69,13 +70,13 @@ namespace ExpenseManageBack.Controllers
         /// <param name="token"></param>
         /// <param name="departmentId"></param>
         /// <returns></returns>
-        public Response<JArray> getApprover(int flowId, string token, int departmentId)
+        public Response<JArray> getApprover(int flowId, string token, string department)
         {
             var resp = new Response<JArray>();
 
             try
             {
-                resp.Result = _service.getApprover(flowId, token, departmentId);
+                resp.Result = _service.getApprover(flowId, token, department);
             }
             catch (Exception e)
             {
