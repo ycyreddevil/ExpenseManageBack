@@ -89,7 +89,132 @@ namespace ExpenseManageBack.Controllers
 
             try
             {
-                resp.Result = _service.getApprover(flowId, token, department);
+                resp.Result = _service.getApprover(flowId, userInfo.Result, department);
+            }
+            catch (Exception e)
+            {
+                resp.code = 500;
+                resp.message = e.Message;
+            }
+            
+            return resp;
+        }
+        
+        /// <summary>
+        /// 获取我已提交 差旅申请
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<TravelApply>> mySubmitted(int year, int month, string key)
+        {
+            var resp = new Response<List<TravelApply>>();
+
+            try
+            {
+                resp.Result = _service.mySubmitted(userInfo.Result.WechatUserId, year, month, key);
+            }
+            catch (Exception e)
+            {
+                resp.code = 500;
+                resp.message = e.Message;
+            }
+            
+            return resp;
+        }
+        
+        /// <summary>
+        /// 获取我已审批 差旅申请
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<TravelApply>> myApproval(int year, int month, string key)
+        {
+            var resp = new Response<List<TravelApply>>();
+
+            try
+            {
+                resp.Result = _service.myApproval(userInfo.Result.WechatUserId, year, month, key);
+            }
+            catch (Exception e)
+            {
+                resp.code = 500;
+                resp.message = e.Message;
+            }
+            
+            return resp;
+        }
+        
+        /// <summary>
+        /// 获取待我审批 差旅申请
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<TravelApply>> myNotApproval(int year, int month, string key)
+        {
+            var resp = new Response<List<TravelApply>>();
+
+            try
+            {
+                resp.Result = _service.myNotApproval(userInfo.Result.WechatUserId, year, month, key);
+            }
+            catch (Exception e)
+            {
+                resp.code = 500;
+                resp.message = e.Message;
+            }
+            
+            return resp;
+        }
+        
+        /// <summary>
+        /// 获取草稿 差旅申请
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<TravelApply>> myDraft(int year, int month, string key)
+        {
+            var resp = new Response<List<TravelApply>>();
+
+            try
+            {
+                resp.Result = _service.myDraft(userInfo.Result.WechatUserId, year, month, key);
+            }
+            catch (Exception e)
+            {
+                resp.code = 500;
+                resp.message = e.Message;
+            }
+            
+            return resp;
+        }
+        
+        /// <summary>
+        /// 审批
+        /// </summary>
+        /// <param name="docCode"></param>
+        /// <param name="result"></param>
+        /// <param name="opinion"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response approval(string docCode, string result, string opinion)
+        {
+            var resp = new Response();
+
+            try
+            {
+                _service.approval(docCode, userInfo.Result.WechatUserId, result, opinion);
             }
             catch (Exception e)
             {

@@ -87,7 +87,7 @@ namespace ExpenseManageBack.Service
         /// </summary>
         /// <param name="flowId"></param>
         /// <returns></returns>
-        public JArray getApprover(int flowId, string token, string department)
+        public JArray getApprover(int flowId, User user, string department)
         {
             var departmentId = _unitWork.FindSingle<Department>(u => u.Name.Equals(department)).Id;
             
@@ -96,11 +96,6 @@ namespace ExpenseManageBack.Service
             var result = new JArray();
 
             // 首先第一级是自己
-            var user = UnitWork.FindSingle<User>(u => u.Token.Equals(token));
-            
-            if (user == null)
-                return null;
-            
             var level = 0;
             var approverJObject = new JObject
             {
