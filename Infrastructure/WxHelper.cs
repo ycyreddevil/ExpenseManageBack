@@ -67,7 +67,7 @@ namespace ExpenseManageBack.Infrastructure
             bool res = true;
             //CookieHelper cookie = new CookieHelper(Context);
             //token = cookie.GetValue(AppSecret + "Token");
-            string sql = string.Format("select Token from wx_token where Name='{0}' ValidityTime > NOW()",AppName);
+            string sql = string.Format("select Token from wx_token where Name='{0}' and ValidityTime > NOW()",AppName);
             object obj = SqlHelper.Scalar(sql);
             if (obj == null)
             {
