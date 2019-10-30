@@ -263,7 +263,12 @@ namespace ExpenseManageBack.Infrastructure
         /// <summary>
         /// 用于验证用户是否登录并同时获取当前用户信息
         /// </summary>
-        /// <returns></returns>
+        /// <returns>错误代码
+        /// 200 成功
+        /// 1   非法请求
+        /// 2   token错误或过有效期
+        /// 100 数据库报错
+        /// </returns>
         public Response<User> CheckAndGetUserInfo()
         {
             Response<User> res = new Response<User>();
@@ -276,20 +281,21 @@ namespace ExpenseManageBack.Infrastructure
             }
             else
             {
-                Response<User> uRes = GetUserInfoByToken(token);
-                if (uRes.code == 100)//数据库报错
-                {
-                    res.code = 100;
-                    res.message = uRes.message;
-                }
-                else if (uRes.code == 2)//token错误或过有效期！
-                {
-                    res = GetUserInfo();
-                }
-                else//成功获取用户信息
-                {
-                    res = uRes;
-                }
+                //Response<User> uRes = GetUserInfoByToken(token);
+                //if (uRes.code == 100)//数据库报错
+                //{
+                //    res.code = 100;
+                //    res.message = uRes.message;
+                //}
+                //else if (uRes.code == 2)//token错误或过有效期！
+                //{
+                //    res = GetUserInfo();
+                //}
+                //else//成功获取用户信息
+                //{
+                //    res = uRes;
+                //}
+                res = GetUserInfoByToken(token);
             }
 
             return res;
