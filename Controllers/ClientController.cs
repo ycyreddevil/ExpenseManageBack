@@ -14,7 +14,7 @@ namespace ExpenseManageBack.Controllers
     public class ClientController : ControllerBase
     {
         private ClientService serv;
-        private User user;
+        private Response<User> userInfo;
         private IHttpContextAccessor _accessor;
 
         public ClientController(ClientService clientService, IHttpContextAccessor accessor)
@@ -22,13 +22,10 @@ namespace ExpenseManageBack.Controllers
             serv = clientService;
             _accessor = accessor;
             WxHelper wx = new WxHelper(_accessor.HttpContext);
-            Response<User> res = wx.CheckAndGetUserInfo();
-            if (res.code == 200)
-                user = res.Result;
-            else//直接返回错误信息！
-            {
-                Redirect(res.message);
-            }
+            userInfo = wx.CheckAndGetUserInfo();
+            if (userInfo.code == 2)
+                Redirect(userInfo.message);
+            
         }
 
         [HttpGet]
@@ -38,7 +35,7 @@ namespace ExpenseManageBack.Controllers
 
             try
             {
-                res.Result = user;
+                res = userInfo;
             }
             catch (Exception e)
             {
