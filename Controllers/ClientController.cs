@@ -21,7 +21,7 @@ namespace ExpenseManageBack.Controllers
         {
             serv = clientService;
             _accessor = accessor;
-            WxHelper wx = new WxHelper("app1", _accessor.HttpContext);
+            WxHelper wx = new WxHelper(_accessor.HttpContext);
             Response<User> res = wx.CheckAndGetUserInfo();
             if (res.code == 200)
                 user = res.Result;

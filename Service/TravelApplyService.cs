@@ -61,7 +61,7 @@ namespace ExpenseManageBack.Service
                 _unitWork.Add(record);
 
                 // 给下级审批人发消息
-                WxHelper wxHelper = new WxHelper("", null);    // todo context怎么传
+                WxHelper wxHelper = new WxHelper(null);    // todo context怎么传
                 wxHelper.GetJsonAndSendWxMsg("", "请及时审批单据", "", "");    // todo agentId确定
 
                 // 给提交人发消息

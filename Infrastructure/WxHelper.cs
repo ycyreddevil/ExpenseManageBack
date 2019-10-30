@@ -25,14 +25,24 @@ namespace ExpenseManageBack.Infrastructure
         private int UserInfoSaveCookieDays = 30;
         public string RedirectUri { get; set; }
 
-        public WxHelper(string name, HttpContext context, string redirectUri = "")
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="name">企业微信应用名称</param>
+        /// <param name="redirectUri"></param>
+        public WxHelper(HttpContext context, string name = "app1", string redirectUri = "")
         {
-            WxParameter wxP = new WxParameter("app1");
-            AppSecret = wxP.App.Secret;
-            AgentId = wxP.App.AgentId;
-            CorpId = wxP.CorpId;
-            AppName = name;
-            UserInfoSaveCookieDays = wxP.UserInfoSaveCookieDays;
+            if(!string.IsNullOrEmpty(name))
+            {
+                WxParameter wxP = new WxParameter("app1");
+                AppSecret = wxP.App.Secret;
+                AgentId = wxP.App.AgentId;
+                CorpId = wxP.CorpId;
+                AppName = name;
+                UserInfoSaveCookieDays = wxP.UserInfoSaveCookieDays;
+            }
+            
             Context = context;
             if (string.IsNullOrEmpty(redirectUri))
                 RedirectUri = GetAbsoluteUri(context.Request);
@@ -172,11 +182,29 @@ namespace ExpenseManageBack.Infrastructure
                 }
                 else
                 {
-                    res = GetUserInfoById(UserId);
+                    string token = Encrypt.GetRandomCodeN(64);
+                    SqlResult sRes = UpdateUserToken(UserId, token);
+                    if(sRes.IsAllSuccess)
+                    {
+                        res = GetUserInfoById(UserId);
+                    }
+                    else
+                    {
+                        res.code = 4;
+                        res.message = sRes.ErrList.ToJson();
+                    }
                 }
                 //cookie.AddCookie("UserId", UserId, DateTime.Now.AddDays(UserInfoSaveCookieDays));
             }
             return res;
+        }
+
+        public SqlResult UpdateUserToken(string userId,string token)
+        {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            dict.Add("Token", token);
+            string sql = SqlHelper.GetUpdateString(dict, "user", string.Format(" where WechatUserId='{0}'", userId));
+            return new SqlResult(SqlHelper.Exce(sql));
         }
 
         public Response<User> GetUserInfoById(string Id)
@@ -281,6 +309,22 @@ namespace ExpenseManageBack.Infrastructure
             jObject.Add("textcard", innerJObject);
 
             return SendWxMsg(jObject.ToString());
+        }
+
+        public Response<string> GetToken()
+        {
+            Response<string> res = new Response<string>();
+            Response<User> uRes = GetUserInfo();
+            User user = uRes.Result;
+            res.code = uRes.code;
+            res.message = uRes.message;
+            if(uRes.code==200)
+            {
+                JObject token = new JObject();
+                token.Add("token", user.Token);
+                res.Result = token.ToString();
+            }
+            return res;
         }
     }
 }
