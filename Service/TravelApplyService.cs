@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using ExpenseManageBack.CustomModel;
 using ExpenseManageBack.Infrastructure;
 using ExpenseManageBack.Model;
 using Microsoft.AspNetCore.Hosting.Internal;
@@ -24,14 +25,14 @@ namespace ExpenseManageBack.Service
         /// </summary>
         /// <param name="travelApply"></param>
         /// <returns></returns>
-        public TravelApply addOrDraft(TravelApply travelApply, string department, JArray approverJArray)
+        public TravelApply addOrDraft(TravelApply travelApply, string department, JArray approverJArray, string wechatUserId)
         {
             travelApply.DocCode = Encrypt.GenerateDocCode();
             
+            _unitWork.Add(travelApply);
+            
             if (travelApply.Status.Equals("已提交"))
             {
-                _unitWork.Add(travelApply);
-                
                 // 新增记录到审批人表
                 var approverList = new List<ApprovalApprover>();
                 foreach (var jarray in approverJArray)
@@ -53,7 +54,7 @@ namespace ExpenseManageBack.Service
                     DocumentTableName = "差旅申请",
                     DocCode = travelApply.DocCode,
                     Level = 0,
-                    WechatUserId = "",    // todo 提交者wechatuserId
+                    WechatUserId = wechatUserId,
                     ApprovalResult = "单据提交",
                     ApprovalOpinions = "单据提交"
                 };
@@ -65,15 +66,6 @@ namespace ExpenseManageBack.Service
 
                 // 给提交人发消息
                 wxHelper.GetJsonAndSendWxMsg("", "您的单据已提交，请知悉", "", ""); // todo agentId确定
-            }
-            else
-            {
-                //todo 通过token获取wechatUserId
-                _unitWork.Delete<TravelApply>(u => u.Status.Equals("草稿") && u.WechatUserId.Equals(""));    
-                _unitWork.Save();
-                
-                // 再保存最新的草稿
-                _unitWork.Update(travelApply);
             }
 
             _unitWork.Save();
@@ -283,46 +275,211 @@ namespace ExpenseManageBack.Service
             return query.ToList();
         }
 
-        public void approval(string docCode, string token)
+        /// <summary>
+        /// 获取差旅申请单详情
+        /// </summary>
+        /// <param name="docCode"></param>
+        /// <returns></returns>
+        public Dictionary<string, object> getDetail(string docCode)
         {
-//            var travelApply = _unitWork.FindSingle<TravelApply>(u => u.DocCode.Equals(docCode));
-//            
-//            // 首先判断该审批人是否有权限 防止重复点击     // todo 通过token获取wechatUserId
-//            var rightApprover = _unitWork.Find<ApprovalApprover>(u =>
-//                u.DocCode.Equals(docCode) && u.Level == travelApply.Level && u.WechatUserId.Equals(""));
-//            
-//            if (rightApprover == null)
-//            {
-//                return new Response
-//                {
-//                    code = 500,
-//                    message = "暂无权限审批"
-//                };
-//            }
-//
-//            // 保存审批记录
-//            var record = new ReimburseRecord
-//            {
-//                ReimburseCode = docCode,
-//                Level = reimburse.Level,
-//                Opinion = opinion,
-//                Result = result,
-//                UserMobile = mobile,
-//                UserName = _unitWork.FindSingle<User>(u => u.Mobile.Equals(mobile)).UserName
-//            };
-//            _unitWork.Add(record);
-//            _unitWork.Save();
-//            
-//            if ("同意".Equals(result))
-//            {
-//                agreeReimburse(reimburse, docCode);
-//            }
-//            else
-//            {
-//                rejectReimburse(reimburse);
-//            }
-//            
-//            _unitWork.Save();
+            // 获取单据详情
+            var travelApply = _unitWork.FindSingle<TravelApply>(u => u.DocCode.Equals(docCode));
+            
+            // 获取审批记录
+            var query = from approvalRecord in _unitWork
+                    .Find<ApprovalRecord>(u => u.DocumentTableName.Equals("差旅申请") && u.DocCode.Equals(docCode)).ToList()
+                join user in _unitWork.Find<User>(null).ToList() on approvalRecord.WechatUserId equals user.WechatUserId
+                select new Dictionary<string, object>
+                {
+                    ["level"] = approvalRecord.Level,
+                    ["result"] = approvalRecord.ApprovalResult,
+                    ["opinion"] = approvalRecord.ApprovalOpinions,
+                    ["time"] = approvalRecord.Time,
+                    ["userName"] = user.UserName
+                };
+
+            var record = query.ToList();
+            
+            // 获取审批人
+            query = from approvalApprover in _unitWork.Find<ApprovalApprover>(u => u.DocumentTableName.Equals("差旅申请") && u.DocCode.Equals(docCode)).ToList()
+                join user in _unitWork.Find<User>(null).ToList() on approvalApprover.WechatUserId equals user.WechatUserId
+                select new Dictionary<string, object>
+                {
+                    ["level"] = approvalApprover.Level,
+                    ["userName"] = user.UserName
+                };
+            
+            var approver = query.ToList();
+            
+            var result = new Dictionary<string, object>
+            {
+                ["travelApply"] = travelApply,
+                ["record"] = record,
+                ["approver"] = approver
+            };
+            
+            return null;
+        }
+
+        /// <summary>
+        /// 我已提交的差旅申请单
+        /// </summary>
+        /// <param name="wechatUserId"></param>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public List<TravelApply> mySubmitted(string wechatUserId, int year, int month, string key)
+        {
+            var iQueryableList = _unitWork.Find<TravelApply>(u => u.WechatUserId.Equals(wechatUserId) && !u.Status.Equals("草稿"));
+
+            if (!string.IsNullOrEmpty(key))
+            {
+                iQueryableList = iQueryableList.Where(u => u.Departure.Contains(key) || u.Destination.Contains(key));
+            }
+
+            if (year != 0 && month != 0)
+            {
+                iQueryableList = iQueryableList.Where(u => u.Date.Year == year && u.Date.Month == month - 1);
+            }
+
+            return iQueryableList.ToList();
+        }
+
+        /// <summary>
+        /// 我已审批的差旅申请单
+        /// </summary>
+        /// <param name="wechatUserId"></param>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public List<TravelApply> myApproval(string wechatUserId, int year, int month, string key)
+        {
+            var query = from travelApply in _unitWork.Find<TravelApply>(null).ToList()
+                join record in
+                    _unitWork.Find<ApprovalRecord>(u =>
+                        u.DocumentTableName.Equals("差旅申请") && u.WechatUserId.Equals(wechatUserId))
+                    on travelApply.DocCode equals record.DocCode
+                select travelApply;
+            
+            if (!string.IsNullOrEmpty(key))
+            {
+                query = query.Where(u => u.Departure.Contains(key) || u.Destination.Contains(key));
+            }
+
+            if (year != 0 && month != 0)
+            {
+                query = query.Where(u => u.Date.Year == year && u.Date.Month == month - 1);
+            }
+            
+            return query.ToList();
+        }
+
+        /// <summary>
+        /// 待我审批的差旅申请单
+        /// </summary>
+        /// <param name="wechatUserId"></param>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public List<TravelApply> myNotApproval(string wechatUserId, int year, int month, string key)
+        {
+            var query = from travelApply in _unitWork.Find<TravelApply>(null).ToList()
+                join approvalApprover in _unitWork.Find<ApprovalApprover>(
+                        u => u.DocumentTableName.Equals("差旅申请") && u.WechatUserId.Equals(wechatUserId)).ToList()
+                    on new {u = travelApply.Level, y = travelApply.DocCode} equals new
+                    {
+                        u = approvalApprover.Level,
+                        y = approvalApprover.DocCode
+                    }
+                select travelApply;
+            
+            if (!string.IsNullOrEmpty(key))
+            {
+                query = query.Where(u => u.Departure.Contains(key) || u.Destination.Contains(key));
+            }
+
+            if (year != 0 && month != 0)
+            {
+                query = query.Where(u => u.Date.Year == year && u.Date.Month == month - 1);
+            }
+
+            return query.ToList();
+        }
+
+        /// <summary>
+        /// 待我提交（草稿状态）的差旅申请单
+        /// </summary>
+        /// <param name="wechatUserId"></param>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public List<TravelApply> myDraft(string wechatUserId, int year, int month, string key)
+        {
+            var iQueryableList = _unitWork.Find<TravelApply>(u => u.WechatUserId.Equals(wechatUserId) && u.Status.Equals("草稿"));
+
+            if (!string.IsNullOrEmpty(key))
+            {
+                iQueryableList = iQueryableList.Where(u => u.Departure.Contains(key) || u.Destination.Contains(key));
+            }
+
+            if (year != 0 && month != 0)
+            {
+                iQueryableList = iQueryableList.Where(u => u.Date.Year == year && u.Date.Month == month - 1);
+            }
+
+            return iQueryableList.ToList();
+        }
+
+        /// <summary>
+        /// 审批差旅申请单
+        /// </summary>
+        /// <param name="docCode"></param>
+        /// <param name="wechatUserId"></param>
+        public Response approval(string docCode, string wechatUserId, string result, string opinion)
+        {
+            var travelApply = _unitWork.FindSingle<TravelApply>(u => u.DocCode.Equals(docCode));
+            
+            // 首先判断该审批人是否有权限 防止重复点击
+            var rightApprover = _unitWork.Find<ApprovalApprover>(u =>
+                u.DocCode.Equals(docCode) && u.Level == travelApply.Level && u.WechatUserId.Equals(wechatUserId));
+            
+            if (rightApprover == null)
+            {
+                return new Response
+                {
+                    code = 500,
+                    message = "暂无权限审批"
+                };
+            }
+
+            // 保存审批记录
+            var record = new ApprovalRecord
+            {
+                DocCode = docCode,
+                Level = travelApply.Level,
+                ApprovalOpinions = opinion,
+                ApprovalResult = result,
+                WechatUserId = wechatUserId,
+                DocumentTableName = "差旅申请"
+            };
+            _unitWork.Add(record);
+            _unitWork.Save();
+            
+            if ("同意".Equals(result))
+            {
+                agree(travelApply, docCode);
+            }
+            else
+            {
+                reject(travelApply);
+            }
+            
+            _unitWork.Save();
+            return null;
         }
         
         /// <summary>
@@ -330,78 +487,53 @@ namespace ExpenseManageBack.Service
         /// </summary>
         /// <param name="reimburse"></param>
         /// <param name="docCode"></param>
-        private void agreeReimburse()
+        private void agree(TravelApply travelApply, string docCode)
         {
             // 判断是否流程结束
-//            var totalStep = _unitWork.Find<ReimburseApproval>(u => u.ReimburseCode.Equals(docCode)).ToList().Count;
-//
-//            if (totalStep == reimburse.Level + 1)
-//            {
-//                // 流程结束
-//                reimburse.State = "已审批";
-//                _unitWork.Update(reimburse);
-//                    
-//                // 发通知给提交人审批流程结束
-//                var jPushClient = new JPushClient("7ca12b1dcd0436c341360d51", "c375b75ef8861d75fbb03a02");
-//            
-//                var payload = SendSms.buildPushObject_all_registrationid_alert(new[]{reimburse.UserMobile}, "你的报销单审批流程结束", "http://localhost:8080/#/havedone/reimburseList");
-//                jPushClient.SendPush(payload);
-//            
-//                // 发通知给知悉人
-//                var informList = _unitWork.Find<ReimburseInformer>(u => u.ReimburseCode.Equals(docCode)).Select(u => u.UserMobile).ToList();
-//                if (informList.Count <= 0) 
-//                    return;
-//                payload = SendSms.buildPushObject_all_registrationid_alert(informList.ToArray(), "有一笔抄送你的报销单流程结束，请知悉", "http://localhost:8080/#/havedone/reimburseList");
-//                jPushClient.SendPush(payload);
-//            }
-//            else
-//            {
-//                // 流程没结束
-//                reimburse.Level = reimburse.Level + 1;
-//                _unitWork.Update(reimburse);
-//
-//                // 发通知给提交人 已被审批
-//                var jPushClient = new JPushClient("7ca12b1dcd0436c341360d51", "c375b75ef8861d75fbb03a02");
-//            
-//                var payload = SendSms.buildPushObject_all_registrationid_alert(new[]{reimburse.UserMobile}, "你的报销单已被审批", "http://localhost:8080/#/havedone/reimburseList");
-//                jPushClient.SendPush(payload);
-//                
-//                // 发通知给知悉人
-//                var informList = _unitWork.Find<ReimburseInformer>(u => u.ReimburseCode.Equals(docCode)).Select(u => u.UserMobile).ToList();
-//                if (informList.Count <= 0) 
-//                    return;
-//                payload = SendSms.buildPushObject_all_registrationid_alert(informList.ToArray(), "有一笔抄送你的报销单已被审批", "http://localhost:8080/#/havedone/reimburseList");
-//                jPushClient.SendPush(payload);
-//                
-//                // 发通知给下一级审批人
-//                var nextApproverMobile = _unitWork.FindSingle<ReimburseApproval>(u => u.ReimburseCode.Equals(docCode) && u.Level == reimburse.Level + 1).UserMobile;
-//                payload = SendSms.buildPushObject_all_registrationid_alert(new[]{nextApproverMobile}, "有一笔报销单待你审批", "http://localhost:8080/#/home/todo");
-//                jPushClient.SendPush(payload);
-//            }
+            var totalStep = _unitWork.Find<TravelApply>(u => u.DocCode.Equals(docCode)).ToList().Count;
+
+            if (totalStep == travelApply.Level + 1)
+            {
+                // 流程结束
+                travelApply.Status = "已审批";
+                _unitWork.Update(travelApply);
+                    
+                // 发通知给提交人审批流程结束
+            
+                // 发通知给知悉人
+            }
+            else
+            {
+                // 流程没结束
+                travelApply.Level = travelApply.Level + 1;
+                _unitWork.Update(travelApply);
+
+                // 发通知给提交人 已被审批
+                
+                // 发通知给知悉人
+                
+                // 发通知给下一级审批人
+            }
         }
 
         /// <summary>
         /// 驳回报销单
         /// </summary>
         /// <param name="reimburse"></param>
-        private void rejectReimburse()
+        private void reject(TravelApply travelApply)
         {
-//            reimburse.State = "已拒绝";
-//            reimburse.Level = 0;
-//            _unitWork.Update(reimburse);
-//                
-//            // 发通知给提交人 审批被拒绝
-//            var jPushClient = new JPushClient("7ca12b1dcd0436c341360d51", "c375b75ef8861d75fbb03a02");
-//
-//            var payload = SendSms.buildPushObject_all_registrationid_alert(new[]{reimburse.UserMobile}, "你的报销单已被拒绝", "http://localhost:8080/#/havedone/reimburseList");
-//            jPushClient.SendPush(payload);
-//
-//            // 发通知给知悉人
-//            var informList = _unitWork.Find<ReimburseInformer>(u => u.ReimburseCode.Equals(reimburse.Code)).Select(u => u.UserMobile).ToList();
-//            if (informList.Count <= 0) 
-//                return;
-//            payload = SendSms.buildPushObject_all_registrationid_alert(informList.ToArray(), "有一笔抄送你的报销单已被拒绝", "http://localhost:8080/#/havedone/reimburseList");
-//            jPushClient.SendPush(payload);
+            travelApply.Status = "已拒绝";
+            travelApply.Level = 0;
+            _unitWork.Update(travelApply);
+                
+            // 发通知给提交人 审批被拒绝
+
+            // 发通知给知悉人
+        }
+
+        public void withraw()
+        {
+            
         }
     }
 }

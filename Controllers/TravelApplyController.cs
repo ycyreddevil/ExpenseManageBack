@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ExpenseManageBack.CustomModel;
+using ExpenseManageBack.Infrastructure;
 using ExpenseManageBack.Model;
 using ExpenseManageBack.Service;
 using Microsoft.AspNetCore.Http;
@@ -29,13 +30,14 @@ namespace ExpenseManageBack.Controllers
         /// <param name="travelApply"></param>
         /// <returns></returns>
         [HttpGet]
-        public Response<TravelApply> addOrDraft(string travelApply, string department, string approver)
+        public Response<TravelApply> addOrDraft(string travelApply, string department, string approver, string token)
         {
             var resp = new Response<TravelApply>();
 
             try
             {
-                resp.Result = _service.addOrDraft(travelApply.ToObject<TravelApply>(), department, approver.ToObject<JArray>());
+                string wechatUserId = "";
+                resp.Result = _service.addOrDraft(travelApply.ToObject<TravelApply>(), department, approver.ToObject<JArray>(), wechatUserId);
             }
             catch (Exception e)
             {

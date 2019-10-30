@@ -31,14 +31,14 @@ namespace ExpenseManageBack.Controllers
             }
         }
 
-        [HttpPost]
-        public Response<Dictionary<string, object>> GetList(string token)
+        [HttpGet]
+        public Response<User> GetList(string token)
         {
-            var res = new Response<Dictionary<string, object>>();
+            var res = new Response<User>();
 
             try
             {
-                res.Result = serv.GetList();
+                res.Result = user;
             }
             catch (Exception e)
             {
