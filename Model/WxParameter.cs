@@ -12,33 +12,23 @@ namespace ExpenseManageBack.Model
     {
         public string CorpId { get; set; }
         public int UserInfoSaveCookieDays { get; set; }
-        private List<WxApp> Apps { get; set; }
         public WxApp App { get; set; }
 
         public WxParameter(string appName)
         {            
             CorpId = AppSettingHelper.GetSection("WxParameter:CorpId");
             UserInfoSaveCookieDays= Convert.ToInt32(AppSettingHelper.GetSection("WxParameter:UserInfoSaveCookieDays"));
-            Apps = Json.ToObject<List<WxApp>>(AppSettingHelper.GetSection("WxParameter:Apps"));
-            App = null;
-            foreach(WxApp app in Apps)
+            App = new WxApp
             {
-                if(app.Name.Equals(appName))
-                {
-                    App = app;
-                    break;
-                }
-            }
+                AgentId = AppSettingHelper.GetSection(string.Format("WxParameter:{0}:AgentId", appName)),
+                Secret = AppSettingHelper.GetSection(string.Format("WxParameter:{0}:Secret", appName))
+            };
         }
-
-
     }
 
     public class WxApp
     {
-        public string Name{ get; set; }
         public string AgentId { get; set; }
         public string Secret { get; set; }
-
     }
 }

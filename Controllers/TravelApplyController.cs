@@ -3,19 +3,24 @@ using System.Collections.Generic;
 using ExpenseManageBack.CustomModel;
 using ExpenseManageBack.Model;
 using ExpenseManageBack.Service;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using yuyu.Infrastructure;
 
 namespace ExpenseManageBack.Controllers
 {
+    [Route("api/[controller]/[action]")]
+    [ApiController]
     public class TravelApplyController : ControllerBase
     {
         private TravelApplyService _service;
+        private IHttpContextAccessor _accessor;
 
-        public TravelApplyController(TravelApplyService travelApplyService)
+        public TravelApplyController(TravelApplyService travelApplyService, IHttpContextAccessor accessor)
         {
             _service = travelApplyService;
+            _accessor = accessor;
         }
         
         /// <summary>
@@ -70,6 +75,7 @@ namespace ExpenseManageBack.Controllers
         /// <param name="token"></param>
         /// <param name="departmentId"></param>
         /// <returns></returns>
+        [HttpPost]
         public Response<JArray> getApprover(int flowId, string token, string department)
         {
             var resp = new Response<JArray>();

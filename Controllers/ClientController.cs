@@ -27,12 +27,12 @@ namespace ExpenseManageBack.Controllers
                 user = res.Result;
             else//直接返回错误信息！
             {
-
+                Redirect(res.message);
             }
         }
 
         [HttpPost]
-        public Response<Dictionary<string, object>> GetList()
+        public Response<Dictionary<string, object>> GetList(string token)
         {
             var res = new Response<Dictionary<string, object>>();
 

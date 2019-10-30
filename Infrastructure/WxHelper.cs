@@ -31,7 +31,7 @@ namespace ExpenseManageBack.Infrastructure
             AppSecret = wxP.App.Secret;
             AgentId = wxP.App.AgentId;
             CorpId = wxP.CorpId;
-            AppName = wxP.App.Name;
+            AppName = name;
             UserInfoSaveCookieDays = wxP.UserInfoSaveCookieDays;
             Context = context;
             if (string.IsNullOrEmpty(redirectUri))
@@ -107,9 +107,10 @@ namespace ExpenseManageBack.Infrastructure
 
         private string GotoGetCode()
         {
-            string randomString = Encrypt.GetRandomCodeN(16);
+            string randomString = "1234567890123456";
+//            string randomString = Encrypt.GetRandomCodeN(16);
             //Context.Session["randomString"] = randomString;
-            Context.Session.SetString("randomString", randomString);
+//            Context.Session.SetString("randomString", randomString);
             //
             //string urlForGettingCode = string.Format(@"https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid={0}" +
             //        "&agentid={1}&redirect_uri={2}&state={3}",
@@ -142,7 +143,8 @@ namespace ExpenseManageBack.Infrastructure
 
             string code = Context.Request.Query["code"];
             string state = Context.Request.Query["state"];
-            string randomString = Context.Session.GetString("randomString");
+//            string randomString = Context.Session.GetString("randomString");
+            string randomString = "1234567890123456";
             string UserId = "";
             //randomString和state用来防止csrf攻击（跨站请求伪造攻击）
             if (string.IsNullOrEmpty(code)
