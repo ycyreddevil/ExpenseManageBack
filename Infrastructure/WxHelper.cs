@@ -35,7 +35,7 @@ namespace ExpenseManageBack.Infrastructure
         {
             if(!string.IsNullOrEmpty(name))
             {
-                WxParameter wxP = new WxParameter("app1");
+                WxParameter wxP = new WxParameter(name);
                 AppSecret = wxP.App.Secret;
                 AgentId = wxP.App.AgentId;
                 CorpId = wxP.CorpId;
