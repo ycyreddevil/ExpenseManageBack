@@ -203,6 +203,7 @@ namespace ExpenseManageBack.Infrastructure
         {
             Dictionary<string, string> dict = new Dictionary<string, string>();
             dict.Add("Token", token);
+            dict.Add("LastLoginTime", DateTime.Now.AddDays(UserInfoSaveCookieDays).ToString("G"));
             string sql = SqlHelper.GetUpdateString(dict, "user", string.Format(" where WechatUserId='{0}'", userId));
             return new SqlResult(SqlHelper.Exce(sql));
         }
