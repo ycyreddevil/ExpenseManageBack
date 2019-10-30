@@ -67,7 +67,7 @@ namespace ExpenseManageBack.Infrastructure
             bool res = true;
             //CookieHelper cookie = new CookieHelper(Context);
             //token = cookie.GetValue(AppSecret + "Token");
-            string sql = string.Format("select Token from wx_token where ValidityTime < NOW()");
+            string sql = string.Format("select Token from wx_token where Name='{0}' ValidityTime > NOW()",AppName);
             object obj = SqlHelper.Scalar(sql);
             if (obj == null)
             {
@@ -97,10 +97,10 @@ namespace ExpenseManageBack.Infrastructure
                 //cookie.AddCookie(AppSecret + "Token", dict["access_token"].ToString(), DateTime.Now.AddSeconds(expires_in));
                 token = dict["access_token"].ToString();
                 Dictionary<string, string> dictNew = new Dictionary<string, string>();
-                dictNew.Add("Name", AppName + "_Token");
+                dictNew.Add("Name", AppName);
                 dictNew.Add("Token", token);
                 dictNew.Add("ValidityTime", DateTime.Now.AddSeconds(expires_in).ToString("G"));
-                string sql = string.Format("delete from wx_token where Name='{0}'\r\n;", AppName + "_Token");
+                string sql = string.Format("delete from wx_token where Name='{0}'\r\n;", AppName);
                 sql += SqlHelper.GetInsertString(dictNew, "wx_token");
                 SqlResult eRes = new SqlResult(SqlHelper.Exce(sql));
                 if (eRes.IsAllSuccess)
