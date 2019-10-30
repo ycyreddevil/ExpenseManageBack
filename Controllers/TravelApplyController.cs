@@ -17,11 +17,16 @@ namespace ExpenseManageBack.Controllers
     {
         private TravelApplyService _service;
         private IHttpContextAccessor _accessor;
+        private Response<User> userInfo;
 
         public TravelApplyController(TravelApplyService travelApplyService, IHttpContextAccessor accessor)
         {
             _service = travelApplyService;
             _accessor = accessor;
+            WxHelper wx = new WxHelper(_accessor.HttpContext);
+            userInfo = wx.CheckAndGetUserInfo();
+            if (userInfo.code == 2)
+                Redirect(userInfo.message);
         }
         
         /// <summary>
@@ -30,13 +35,13 @@ namespace ExpenseManageBack.Controllers
         /// <param name="travelApply"></param>
         /// <returns></returns>
         [HttpGet]
-        public Response<TravelApply> addOrDraft(string travelApply, string department, string approver, string token)
+        public Response<TravelApply> addOrDraft(string travelApply, string department, string approver)
         {
             var resp = new Response<TravelApply>();
 
             try
             {
-                string wechatUserId = "";
+                var wechatUserId = userInfo.Result.WechatUserId;
                 resp.Result = _service.addOrDraft(travelApply.ToObject<TravelApply>(), department, approver.ToObject<JArray>(), wechatUserId);
             }
             catch (Exception e)

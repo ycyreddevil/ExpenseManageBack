@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ExpenseManageBack.CustomModel;
+using ExpenseManageBack.Infrastructure;
 using ExpenseManageBack.Model;
 using ExpenseManageBack.Service;
 using Microsoft.AspNetCore.Http;
@@ -14,11 +15,16 @@ namespace ExpenseManageBack.Controllers
     {
         private FlowService _service;
         private IHttpContextAccessor _accessor;
+        private Response<User> userInfo;
 
         public FlowController(FlowService flowService, IHttpContextAccessor accessor)
         {
             _service = flowService;
             _accessor = accessor;
+            WxHelper wx = new WxHelper(_accessor.HttpContext);
+            userInfo = wx.CheckAndGetUserInfo();
+            if (userInfo.code == 2)
+                Redirect(userInfo.message);
         }
 
         /// <summary>
@@ -171,7 +177,7 @@ namespace ExpenseManageBack.Controllers
 
             try
             {
-                resp.Result = _service.addOrUpdate(flow);
+                resp.Result = _service.addOrUpdate(flow, userInfo.Result.UserName);
             }
             catch (Exception e)
             {

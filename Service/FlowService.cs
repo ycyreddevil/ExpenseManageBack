@@ -85,8 +85,9 @@ namespace ExpenseManageBack.Service
         /// </summary>
         /// <param name="flow"></param>
         /// <returns></returns>
-        public Flow addOrUpdate(Flow flow)
+        public Flow addOrUpdate(Flow flow, string userName)
         {
+            flow.UserName = userName;
             if (flow.Id != 0)
             {
                 _unitWork.Update(flow);
