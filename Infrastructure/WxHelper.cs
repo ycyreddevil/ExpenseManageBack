@@ -45,7 +45,8 @@ namespace ExpenseManageBack.Infrastructure
             
             Context = context;
             if (string.IsNullOrEmpty(redirectUri))
-                RedirectUri = GetAbsoluteUri(context.Request);
+//                RedirectUri = GetAbsoluteUri(context.Request);
+                RedirectUri = "http://yelioa.top:8080/#/setting/index";
             else
                 RedirectUri = redirectUri;
         }
