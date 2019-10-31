@@ -15,7 +15,7 @@ namespace ExpenseManageBack.Controllers
     {
         private ProductService _service;
 
-        public ProductController(ProductService productService, WxHelper wxHelper)
+        public ProductController(ProductService productService)
         {
             _service = productService;
         }
