@@ -128,7 +128,7 @@ namespace ExpenseManageBack.Infrastructure
             string urlForGettingCode = string.Format(@"https://open.weixin.qq.com/connect/oauth2/authorize?appid={0}"
                 + "&redirect_uri={1}&response_type=code&scope=snsapi_base&agentid={2}&state={3}#wechat_redirect"
                 , CorpId, HttpUtility.UrlEncode(RedirectUri), AgentId, randomString);
-            Context.Response.Redirect(urlForGettingCode, false);
+            //Context.Response.Redirect(urlForGettingCode, false);
             return urlForGettingCode;
         }
 
@@ -161,7 +161,7 @@ namespace ExpenseManageBack.Infrastructure
                 || string.IsNullOrEmpty(randomString)
                 || !string.Equals(state, randomString))
             {
-                res.code = 2;//跳转url至获取code页面
+                res.code = 1000;//跳转url至获取code页面
                 res.message = GotoGetCode();
                 return res;
             }
