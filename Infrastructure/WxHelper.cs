@@ -329,6 +329,7 @@ namespace ExpenseManageBack.Infrastructure
             {
                 JObject token = new JObject();
                 token.Add("token", user.Token);
+                token.Add("validityTime", DateTime.Now.AddDays(UserInfoSaveCookieDays).ToFileTime().ToString());
                 res.Result = token.ToString();
             }
             return res;
