@@ -22,20 +22,22 @@ namespace ExpenseManageBack.Controllers
             serv = clientService;
             _accessor = accessor;
             WxHelper wx = new WxHelper(_accessor.HttpContext);
-            userInfo = wx.CheckAndGetUserInfo();
-            if (userInfo.code == 2)
-                Redirect(userInfo.message);
-            
+            userInfo = wx.CheckAndGetUserInfo();            
         }
 
         [HttpGet]
-        public Response<User> GetList(string token)
+        public Response<Dictionary<string, object>> GetList(string token)
         {
-            var res = new Response<User>();
-
+            var res = new Response<Dictionary<string, object>>();
+            if(userInfo.code!=200)
+            {
+                res.code = userInfo.code;
+                res.message = userInfo.message;
+                return res;
+            }
             try
             {
-                res = userInfo;
+                res.Result = serv.GetList();
             }
             catch (Exception e)
             {
