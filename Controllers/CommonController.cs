@@ -32,10 +32,10 @@ namespace ExpenseManageBack.Controllers
             Response<string> res = new Response<string>();
             WxHelper wx = new WxHelper(_accessor.HttpContext);
             res = wx.GetToken();
-            if (res.code == 1000)
-            {
-                Redirect(res.message);
-            }
+            //if (res.code == 1000)
+            //{
+            //    Redirect(res.message);
+            //}
             return res;
         }
     }
