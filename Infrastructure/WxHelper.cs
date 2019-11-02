@@ -45,8 +45,9 @@ namespace ExpenseManageBack.Infrastructure
             
             Context = context;
             if (string.IsNullOrEmpty(redirectUri))
-//                RedirectUri = GetAbsoluteUri(context.Request);
-                RedirectUri = "http://yelioa.top:8080/#/setting/index";
+                RedirectUri= Context.Request.Query["redirectUrl"];
+            //RedirectUri = GetAbsoluteUri(context.Request);
+            //RedirectUri = "http://yelioa.top:8080/#/setting/index";
             else
                 RedirectUri = redirectUri;
         }
@@ -164,6 +165,12 @@ namespace ExpenseManageBack.Infrastructure
             {
                 res.code = 1000;//跳转url至获取code页面
                 res.message = GotoGetCode();
+                return res;
+            }
+            else if(string.IsNullOrEmpty(RedirectUri))
+            {
+                res.code = 5;
+                res.message = "缺少参数redirectUrl";
                 return res;
             }
             else
