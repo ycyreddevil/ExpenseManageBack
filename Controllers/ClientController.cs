@@ -32,7 +32,7 @@ namespace ExpenseManageBack.Controllers
             if(userInfo.code!=200)
             {
                 res.code = userInfo.code;
-                res.message = userInfo.message;
+                res.message = userInfo.message; 
                 return res;
             }
             try
