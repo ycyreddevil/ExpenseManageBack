@@ -26,7 +26,7 @@ namespace ExpenseManageBack.Controllers
         }
 
         [HttpGet]
-        public Response<Dictionary<string, object>> GetList(string token)
+        public Response<Dictionary<string, object>> GetList()
         {
             var res = new Response<Dictionary<string, object>>();
             if(userInfo.code!=200)
@@ -37,7 +37,32 @@ namespace ExpenseManageBack.Controllers
             }
             try
             {
+                //CrudHelper<Client> crud = new CrudHelper<Client>("client");
                 res.Result = serv.GetList();
+            }
+            catch (Exception e)
+            {
+                res.code = 500;
+                res.message = e.Message;
+            }
+
+            return res;
+        }
+
+        [HttpPost]
+        public Response<List<Client>> GetByName(string name)
+        {
+            var res = new Response<List<Client>>();
+            if (userInfo.code != 200)
+            {
+                res.code = userInfo.code;
+                res.message = userInfo.message;
+                return res;
+            }
+            try
+            {
+                CrudHelper<Client> crud = new CrudHelper<Client>("client");
+                res.Result = crud.GetList(string.Format("Name like '%{0}%'", name));
             }
             catch (Exception e)
             {
