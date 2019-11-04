@@ -25,9 +25,14 @@ namespace ExpenseManageBack.Service
         /// </summary>
         /// <param name="travelApply"></param>
         /// <returns></returns>
-        public TravelApply addOrDraft(TravelApply travelApply, string department, JArray approverJArray, string wechatUserId)
+        public TravelApply addOrDraft(TravelApply travelApply, JArray approverJArray, User userInfo)
         {
             travelApply.DocCode = Encrypt.GenerateDocCode();
+            travelApply.WechatUserId = userInfo.WechatUserId;
+            travelApply.UserName = userInfo.UserName;
+            
+            // 找部门id
+            travelApply.DepartmentId = _unitWork.FindSingle<Department>(u => u.Name.Equals(travelApply.DepartmentName)).Id;
             
             _unitWork.Add(travelApply);
             
@@ -54,18 +59,18 @@ namespace ExpenseManageBack.Service
                     DocumentTableName = "差旅申请",
                     DocCode = travelApply.DocCode,
                     Level = 0,
-                    WechatUserId = wechatUserId,
+                    WechatUserId = userInfo.WechatUserId,
                     ApprovalResult = "单据提交",
                     ApprovalOpinions = "单据提交"
                 };
                 _unitWork.Add(record);
 
                 // 给下级审批人发消息
-                WxHelper wxHelper = new WxHelper(null);    // todo context怎么传
-                wxHelper.GetJsonAndSendWxMsg("", "请及时审批单据", "", "");    // todo agentId确定
-
-                // 给提交人发消息
-                wxHelper.GetJsonAndSendWxMsg("", "您的单据已提交，请知悉", "", ""); // todo agentId确定
+//                WxHelper wxHelper = new WxHelper(null);    // todo context怎么传
+//                wxHelper.GetJsonAndSendWxMsg("", "请及时审批单据", "", "");    // todo agentId确定
+//
+//                // 给提交人发消息
+//                wxHelper.GetJsonAndSendWxMsg("", "您的单据已提交，请知悉", "", ""); // todo agentId确定
             }
 
             _unitWork.Save();
