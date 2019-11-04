@@ -22,7 +22,7 @@ namespace ExpenseManageBack.Model
         public string Remark { get; set; }
         public string UserName { get; set; }
         public string WechatUserId { get; set; }
-        public string DepartmentId { get; set; }
+        public int DepartmentId { get; set; }
         public string DepartmentName { get; set; }
         public string Status { get; set; }
         public int Level { get; set; }
@@ -46,7 +46,7 @@ namespace ExpenseManageBack.Model
             Remark = string.Empty;
             UserName = string.Empty;
             WechatUserId = string.Empty;
-            DepartmentId = string.Empty;
+            DepartmentId = 0;
             DepartmentName = string.Empty;
             Status = string.Empty;
             Level = 0;

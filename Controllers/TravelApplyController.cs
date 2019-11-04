@@ -23,7 +23,7 @@ namespace ExpenseManageBack.Controllers
         {
             _service = travelApplyService;
             _accessor = accessor;
-            WxHelper wx = new WxHelper(_accessor.HttpContext);
+            WxHelper wx = new WxHelper(_accessor.HttpContext, "travelApply");
             userInfo = wx.CheckAndGetUserInfo();
             if (userInfo.code == 2)
                 Redirect(userInfo.message);
@@ -35,14 +35,14 @@ namespace ExpenseManageBack.Controllers
         /// <param name="travelApply"></param>
         /// <returns></returns>
         [HttpGet]
-        public Response<TravelApply> addOrDraft(string travelApply, string department, string approver)
+        public Response<TravelApply> addOrDraft(string travelApply, string approver)
         {
             var resp = new Response<TravelApply>();
 
             try
             {
-                var wechatUserId = userInfo.Result.WechatUserId;
-                resp.Result = _service.addOrDraft(travelApply.ToObject<TravelApply>(), department, approver.ToObject<JArray>(), wechatUserId);
+                var _userInfo = userInfo.Result;
+                resp.Result = _service.addOrDraft(travelApply.ToObject<TravelApply>(), approver.ToObject<JArray>(), _userInfo);
             }
             catch (Exception e)
             {
@@ -83,7 +83,7 @@ namespace ExpenseManageBack.Controllers
         /// <param name="departmentId"></param>
         /// <returns></returns>
         [HttpPost]
-        public Response<JArray> getApprover(int flowId, string token, string department)
+        public Response<JArray> getApprover(int flowId, string department)
         {
             var resp = new Response<JArray>();
 
