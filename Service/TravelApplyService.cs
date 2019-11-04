@@ -556,16 +556,34 @@ namespace ExpenseManageBack.Service
         {
             var data = _unitWork.FindSingle<TravelApply>(u => u.DocCode.Equals(docCode));
 
-            var record = _unitWork.Find<ApprovalRecord>(u =>
-                u.DocCode.Equals(data.DocCode) && u.DocumentTableName.Equals("差旅申请")).ToList();
+            var _record = from record in _unitWork.Find<ApprovalRecord>(u =>
+                    u.DocCode.Equals(data.DocCode) && u.DocumentTableName.Equals("差旅申请")).ToList()
+                join user in
+                    _unitWork.Find<User>(null).ToList() on record.WechatUserId equals user.WechatUserId
+                select new Dictionary<string, object>
+                {
+                    {"wechatUserId", record.WechatUserId},
+                    {"userName", user.UserName},
+                    {"time", record.Time},
+                    {"level", record.Level},
+                    {"result", record.ApprovalResult},
+                    {"opinion", record.ApprovalOpinions},
+                };
 
-            var approver = _unitWork
-                .Find<ApprovalApprover>(
-                    u => u.DocCode.Equals(data.DocCode) && u.DocumentTableName.Equals("差旅申请")).ToList();
+            var _approver = from approver in _unitWork.Find<ApprovalApprover>(
+                    u => u.DocCode.Equals(data.DocCode) && u.DocumentTableName.Equals("差旅申请")).ToList()
+                join user in
+                    _unitWork.Find<User>(null).ToList() on approver.WechatUserId equals user.WechatUserId
+                select new Dictionary<string, object>
+                {
+                    {"wechatUserId", approver.WechatUserId},
+                    {"userName", user.UserName},
+                    {"level", approver.Level},
+                };
 
             var result = new Dictionary<string, object>
             {
-                {"data", data}, {"record", record}, {"approver", approver}
+                {"data", data}, {"record", _record}, {"approver", _approver}
             };
             
             return result;

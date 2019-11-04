@@ -230,6 +230,7 @@ namespace ExpenseManageBack.Controllers
         /// </summary>
         /// <param name="docCode"></param>
         /// <returns></returns>
+        [HttpPost]
         public Response<Dictionary<string, object>> getByCode(string docCode)
         {
             var result = new Response<Dictionary<string, object>>();
