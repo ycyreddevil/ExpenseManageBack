@@ -38,5 +38,24 @@ namespace ExpenseManageBack.Controllers
             //}
             return res;
         }
+
+        [HttpGet]
+        public Response setToken(string token)
+        {
+            Response res = new Response();
+            CookieHelper cookie = new CookieHelper(_accessor.HttpContext);
+            cookie.DeleteCookie("userToken");
+            cookie.AddCookie("userToken", token, DateTime.Now.AddDays(30));
+            return res;
+        }
+
+        [HttpGet]
+        public Response ClearToken()
+        {
+            Response res = new Response();
+            CookieHelper cookie = new CookieHelper(_accessor.HttpContext);
+            cookie.DeleteCookie("userToken");
+            return res;
+        }
     }
 }

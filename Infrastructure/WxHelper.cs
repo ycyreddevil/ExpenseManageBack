@@ -284,8 +284,17 @@ namespace ExpenseManageBack.Infrastructure
             string token = Context.Request.Query["token"];
             if (token == null)
             {
-                res.code = 1;
-                res.message = "非法请求！";
+                CookieHelper cookie = new CookieHelper(Context);
+                token = cookie.GetValue("userToken");
+                if(!string.IsNullOrEmpty(token))
+                {
+                    res = GetUserInfoByToken(token);
+                }
+                else
+                {
+                    res.code = 1;
+                    res.message = "非法请求！";
+                }
             }
             else
             {
@@ -339,6 +348,58 @@ namespace ExpenseManageBack.Infrastructure
                 token.Add("token", user.Token);
                 token.Add("validityTime", DateTime.Now.AddDays(UserInfoSaveCookieDays).ToFileTime().ToString());
                 res.Result = token.ToString();
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// 获取部门列表
+        /// {
+        // {  "errcode": 0,
+        //   "errmsg": "ok",
+        //   "department": [
+        //       {
+        //           "id": 2,
+        //           "name": "广州研发中心",
+        //           "parentid": 1,
+        //           "order": 10
+        //       },
+        //       {
+        //           "id": 3,
+        //           "name": "邮箱产品部",
+        //           "parentid": 2,
+        //           "order": 40
+        //       }
+        //   ]
+        //}
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public Response<string> GetDepartmentList(int id=-1)
+        {
+            Response<string> res = new Response<string>();
+            string WxToken = "";
+            if (!GetWxToken(out WxToken))//获取企业微信token失败
+            {
+                res.code = 1;
+                res.message = "获取企业微信token失败:" + WxToken;
+                return res;
+            }
+            string url = string.Format("https://qyapi.weixin.qq.com/cgi-bin/department/list?access_token={0}", WxToken);
+            if(id>=0)
+            {
+                url += string.Format("&id={0}", id.ToString());
+            }
+            string getRes = HttpHelper.Get(url);
+            Dictionary<string, object> dict = Json.ToObject<Dictionary<string, object>>(getRes);
+            if(dict["errcode"].Equals(0))
+            {
+                res.Result = dict["department"].ToString();
+            }
+            else
+            {
+                res.code = Convert.ToInt32(dict["errcode"]);
+                res.message = dict["errmsg"].ToString();
             }
             return res;
         }
