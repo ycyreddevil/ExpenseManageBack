@@ -9,7 +9,7 @@ namespace ExpenseManageBack.Model
         public int ParentId { get; set; }
         public string Name { get; set; }
         public string ParentName { get; set; }
-        public int Order { get; set; }
+        public long Order { get; set; }
 
         public Department()
         {

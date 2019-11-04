@@ -355,23 +355,23 @@ namespace ExpenseManageBack.Infrastructure
         /// <summary>
         /// 获取部门列表
         /// {
-        // {  "errcode": 0,
-        //   "errmsg": "ok",
-        //   "department": [
-        //       {
-        //           "id": 2,
-        //           "name": "广州研发中心",
-        //           "parentid": 1,
-        //           "order": 10
-        //       },
-        //       {
-        //           "id": 3,
-        //           "name": "邮箱产品部",
-        //           "parentid": 2,
-        //           "order": 40
-        //       }
-        //   ]
-        //}
+        /// {  "errcode": 0,
+        ///   "errmsg": "ok",
+        ///   "department": [
+        ///       {
+        ///           "id": 2,
+        ///           "name": "广州研发中心",
+        ///           "parentid": 1,
+        ///           "order": 10
+        ///       },
+        ///       {
+        ///           "id": 3,
+        ///           "name": "邮箱产品部",
+        ///           "parentid": 2,
+        ///           "order": 40
+        ///       }
+        ///   ]
+        ///}
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -392,7 +392,7 @@ namespace ExpenseManageBack.Infrastructure
             }
             string getRes = HttpHelper.Get(url);
             Dictionary<string, object> dict = Json.ToObject<Dictionary<string, object>>(getRes);
-            if(dict["errcode"].Equals(0))
+            if(Convert.ToInt32(dict["errcode"])==0)
             {
                 res.Result = dict["department"].ToString();
             }

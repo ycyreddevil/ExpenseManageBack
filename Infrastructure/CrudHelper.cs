@@ -81,6 +81,13 @@ namespace ExpenseManageBack.Infrastructure
             return Result;
         }
 
+        public SqlResult Delete(string condition="1=1")
+        {
+            string sql = string.Format("delete from {0} where {1}", TableName, condition);
+            Result = new SqlResult(SqlHelper.Exce(sql));
+            return Result;
+        }
+
         public SqlResult Delete(int[] Id)
         {
             if(Id.Length==0)
