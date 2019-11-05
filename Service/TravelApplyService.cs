@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ExpenseManageBack.CustomModel;
 using ExpenseManageBack.Infrastructure;
@@ -25,7 +26,7 @@ namespace ExpenseManageBack.Service
         /// </summary>
         /// <param name="travelApply"></param>
         /// <returns></returns>
-        public TravelApply addOrDraft(TravelApply travelApply, JArray approverJArray, User userInfo)
+        public TravelApply addOrDraft(TravelApply travelApply, JArray approverJArray, User userInfo, WxHelper wx)
         {
             if (string.IsNullOrEmpty(travelApply.DocCode))
                 travelApply.DocCode = Encrypt.GenerateDocCode();
@@ -79,11 +80,18 @@ namespace ExpenseManageBack.Service
                 _unitWork.Add(record);
 
                 // 给下级审批人发消息
-//                WxHelper wxHelper = new WxHelper(null);    // todo context怎么传
-//                wxHelper.GetJsonAndSendWxMsg("", "请及时审批单据", "", "");    // todo agentId确定
-//
-//                // 给提交人发消息
-//                wxHelper.GetJsonAndSendWxMsg("", "您的单据已提交，请知悉", "", ""); // todo agentId确定
+                WxTextCardMessage msg = new WxTextCardMessage(Convert.ToInt32(wx.AgentId), "审批通知", 
+                    "你有一笔差旅申请待审批!", "http://yelioa.top:8080/#/travel_apply/pending", "");
+                msg.touser = _unitWork.FindSingle<ApprovalApprover>(u =>
+                    u.DocCode.Equals(travelApply.DocCode) && u.DocumentTableName.Equals("差旅申请") &&
+                    u.Level == travelApply.Level + 1).WechatUserId;
+                wx.SendWxTextCardMessage(msg);            
+
+                // 给提交人发消息
+                msg = new WxTextCardMessage(Convert.ToInt32(wx.AgentId), "审批通知", 
+                    $"你的差旅申请已提交，请耐心等待审批!", "http://yelioa.top:8080/#/travel_apply/mine", "");
+                msg.touser = travelApply.WechatUserId;
+                wx.SendWxTextCardMessage(msg);              
             }
 
             _unitWork.Save();
@@ -490,7 +498,7 @@ namespace ExpenseManageBack.Service
         /// </summary>
         /// <param name="docCode"></param>
         /// <param name="wechatUserId"></param>
-        public Response approval(string docCode, string wechatUserId, string result, string opinion)
+        public Response approval(string docCode, string wechatUserId, string result, string opinion, WxHelper wx, User user)
         {
             var travelApply = _unitWork.FindSingle<TravelApply>(u => u.DocCode.Equals(docCode));
 
@@ -509,11 +517,11 @@ namespace ExpenseManageBack.Service
 
             if ("同意".Equals(result))
             {
-                agree(travelApply, docCode);
+                agree(travelApply, docCode, wx, user);
             }
             else
             {
-                reject(travelApply);
+                reject(travelApply, wx, opinion, user);
             }
 
             // 保存审批记录
@@ -538,7 +546,7 @@ namespace ExpenseManageBack.Service
         /// </summary>
         /// <param name="reimburse"></param>
         /// <param name="docCode"></param>
-        private void agree(TravelApply travelApply, string docCode)
+        private void agree(TravelApply travelApply, string docCode, WxHelper wx, User user)
         {
             // 判断是否流程结束
             var totalStep = _unitWork
@@ -551,9 +559,17 @@ namespace ExpenseManageBack.Service
                 travelApply.Status = "已审批";
                 _unitWork.Update(travelApply);
 
+                // 发通知给提交人 已被审批
+                WxTextCardMessage msg = new WxTextCardMessage(Convert.ToInt32(wx.AgentId), "审批通知", 
+                    $"你的差旅申请已被{user.UserName}审批，审批结果为同意!", "http://yelioa.top:8080/#/travel_apply/mine", "");
+                msg.touser = travelApply.WechatUserId;
+                wx.SendWxTextCardMessage(msg);                
+                
                 // 发通知给提交人审批流程结束
-
-                // 发通知给知悉人
+                msg = new WxTextCardMessage(Convert.ToInt32(wx.AgentId), "审批通知", 
+                    "你的差旅申请已经审批通过!", "http://yelioa.top:8080/#/travel_apply/mine", "");
+                msg.touser = travelApply.WechatUserId;
+                wx.SendWxTextCardMessage(msg);
             }
             else
             {
@@ -562,10 +578,18 @@ namespace ExpenseManageBack.Service
                 _unitWork.Update(travelApply);
 
                 // 发通知给提交人 已被审批
-
-                // 发通知给知悉人
+                WxTextCardMessage msg = new WxTextCardMessage(Convert.ToInt32(wx.AgentId), "审批通知", 
+                    $"你的差旅申请已被{user.UserName}审批，审批结果为同意!", "http://yelioa.top:8080/#/travel_apply/mine", "");
+                msg.touser = travelApply.WechatUserId;
+                wx.SendWxTextCardMessage(msg);
 
                 // 发通知给下一级审批人
+                msg = new WxTextCardMessage(Convert.ToInt32(wx.AgentId), "审批通知", 
+                    "你有一笔差旅申请待审批!", "http://yelioa.top:8080/#/travel_apply/pending", "");
+                msg.touser = _unitWork.FindSingle<ApprovalApprover>(u =>
+                    u.DocCode.Equals(travelApply.DocCode) && u.DocumentTableName.Equals("差旅申请") &&
+                    u.Level == travelApply.Level + 1).WechatUserId;
+                wx.SendWxTextCardMessage(msg);
             }
 
             travelApply.Level = travelApply.Level + 1;
@@ -576,15 +600,17 @@ namespace ExpenseManageBack.Service
         /// 驳回报销单
         /// </summary>
         /// <param name="reimburse"></param>
-        private void reject(TravelApply travelApply)
+        private void reject(TravelApply travelApply, WxHelper wx, string opinion, User user)
         {
             travelApply.Status = "已拒绝";
             travelApply.Level = travelApply.Level + 1;
             _unitWork.Update(travelApply);
 
             // 发通知给提交人 审批被拒绝
-
-            // 发通知给知悉人
+            WxTextCardMessage msg = new WxTextCardMessage(Convert.ToInt32(wx.AgentId), "审批通知", 
+                $"你的差旅申请已被{user.UserName}审批，审批结果为拒绝，审批理由为{opinion}!", "http://yelioa.top:8080/#/travel_apply/mine", "");
+            msg.touser = travelApply.WechatUserId;
+            wx.SendWxTextCardMessage(msg);
         }
 
         /// <summary>

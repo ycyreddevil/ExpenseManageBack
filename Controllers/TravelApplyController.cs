@@ -18,12 +18,13 @@ namespace ExpenseManageBack.Controllers
         private TravelApplyService _service;
         private IHttpContextAccessor _accessor;
         private Response<User> userInfo;
+        private WxHelper wx;
 
         public TravelApplyController(TravelApplyService travelApplyService, IHttpContextAccessor accessor)
         {
             _service = travelApplyService;
             _accessor = accessor;
-            WxHelper wx = new WxHelper(_accessor.HttpContext, "travelApply");
+            wx = new WxHelper(_accessor.HttpContext, "travelApply");
             userInfo = wx.CheckAndGetUserInfo();
         }
         
@@ -40,7 +41,7 @@ namespace ExpenseManageBack.Controllers
             try
             {
                 var _userInfo = userInfo.Result;
-                resp.Result = _service.addOrDraft(travelApply.ToObject<TravelApply>(), approver.ToObject<JArray>(), _userInfo);
+                resp.Result = _service.addOrDraft(travelApply.ToObject<TravelApply>(), approver.ToObject<JArray>(), _userInfo, wx);
             }
             catch (Exception e)
             {
@@ -137,7 +138,7 @@ namespace ExpenseManageBack.Controllers
 
             try
             {
-                _service.approval(docCode, userInfo.Result.WechatUserId, result, opinion);
+                _service.approval(docCode, userInfo.Result.WechatUserId, result, opinion, wx, userInfo.Result);
             }
             catch (Exception e)
             {
