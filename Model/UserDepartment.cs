@@ -9,6 +9,7 @@ namespace ExpenseManageBack.Model
         public string WechatUserId { get; set; }
         public int DepartmentId { get; set; }
         public int IsLeader { get; set; }
+        public long Order { get; set; }
 
         public UserDepartment()
         {
@@ -16,6 +17,7 @@ namespace ExpenseManageBack.Model
             WechatUserId = string.Empty;
             DepartmentId = 0;
             IsLeader = 0;
+            Order = 0;
         }
     }
 }

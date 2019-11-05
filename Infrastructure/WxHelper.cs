@@ -403,5 +403,31 @@ namespace ExpenseManageBack.Infrastructure
             }
             return res;
         }
+
+        public Response<string> GetUserList()
+        {
+            Response<string> res = new Response<string>();
+            string WxToken = "";
+            if (!GetWxToken(out WxToken))//获取企业微信token失败
+            {
+                res.code = 1;
+                res.message = "获取企业微信token失败:" + WxToken;
+                return res;
+            }
+            string url = string.Format("https://qyapi.weixin.qq.com/cgi-bin/user/list?access_token={0}&department_id=1"
+                +"&fetch_child=1", WxToken);
+            string getRes = HttpHelper.Get(url);
+            Dictionary<string, object> dict = Json.ToObject<Dictionary<string, object>>(getRes);
+            if (Convert.ToInt32(dict["errcode"]) == 0)
+            {
+                res.Result = dict["userlist"].ToString();
+            }
+            else
+            {
+                res.code = Convert.ToInt32(dict["errcode"]);
+                res.message = dict["errmsg"].ToString();
+            }
+            return res;
+        }
     }
 }

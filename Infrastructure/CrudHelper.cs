@@ -23,23 +23,23 @@ namespace ExpenseManageBack.Infrastructure
             TableName = talbeName;
         }
 
-        public SqlResult Add(T modul)
+        public SqlResult Add(T modul,bool NeedAddId=false)
         {
             List<T> list = new List<T>();
             list.Add(modul);
-            Add(list);
+            Add(list,NeedAddId);
             return Result;
         }
 
-        public SqlResult Add(List<T> listModul)
+        public SqlResult Add(List<T> listModul, bool NeedAddId=false)
         {
             if (listModul == null || listModul.Count == 0)
             {
-                
+                return Result;
             }
             Type t = listModul[0].GetType();
             DataTable dt = FillDataTable(listModul);
-            if (dt.Columns.Contains("Id"))
+            if (dt.Columns.Contains("Id") && !NeedAddId)
                 dt.Columns.Remove("Id");
             string sql = SqlHelper.GetInsertString(dt, TableName);
             Result = new SqlResult(SqlHelper.Exce(sql));
@@ -59,7 +59,7 @@ namespace ExpenseManageBack.Infrastructure
         {
             if (listModul == null || listModul.Count == 0)
             {
-
+                return Result;
             }
             Type t = listModul[0].GetType();
             DataTable dt = FillDataTable(listModul);
@@ -92,7 +92,7 @@ namespace ExpenseManageBack.Infrastructure
         {
             if(Id.Length==0)
             {
-
+                return Result;
             }
             string Ids = "";
             foreach(int id in Id)
@@ -126,6 +126,15 @@ namespace ExpenseManageBack.Infrastructure
             strSql.Append(" FROM " + TableName);
             strSql.Append(" where " + condition);
             DataSet ds = SqlHelper.Find(strSql.ToString());
+            if (ds == null || ds.Tables[0].Rows.Count == 0)
+                return null;
+            else
+                return FillModel(ds.Tables[0]);
+        }
+
+        public List<T> GetListBySql(string sql )
+        {
+            DataSet ds = SqlHelper.Find(sql);
             if (ds == null || ds.Tables[0].Rows.Count == 0)
                 return null;
             else

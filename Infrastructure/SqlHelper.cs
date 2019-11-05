@@ -146,6 +146,7 @@ namespace ExpenseManageBack.Infrastructure
                         {
                             //ret += string.Format("{0}:{1},{2};\r\n", cmdCount, cnt, e.ToString());
                             res.Add(new SqlExceResult(1, 0, e.ToString(), strCmd));
+                            break;
                         }
                     }
                 }
@@ -183,6 +184,7 @@ namespace ExpenseManageBack.Infrastructure
                         {
                             //ret += string.Format("{0}:{1},{2};\r\n", cmdCount, cnt, e.ToString());
                             res.Add(new SqlExceResult(2, 0, e.ToString(), strCmd));
+                            break;
                         }
                     }
                 }
@@ -373,7 +375,7 @@ namespace ExpenseManageBack.Infrastructure
             string values = "";
             foreach (DataColumn clm in row.Table.Columns)
             {
-                fileds += string.Format("{0},", VerifyString(clm.ColumnName));
+                fileds += string.Format("`{0}`,", VerifyString(clm.ColumnName));
                 values += string.Format("'{0}',", VerifyString(row[clm.ColumnName].ToString()));
             }
             fileds = fileds.Substring(0, fileds.Length - 1);
@@ -399,7 +401,7 @@ namespace ExpenseManageBack.Infrastructure
                 return "";
             foreach (string key in dict.Keys)
             {
-                fileds += string.Format("{0},", VerifyString(key));
+                fileds += string.Format("`{0}`,", VerifyString(key));
                 values += string.Format("'{0}',", VerifyString(dict[key]));
             }
             fileds = fileds.Substring(0, fileds.Length - 1);
@@ -436,7 +438,7 @@ namespace ExpenseManageBack.Infrastructure
             JObject dict = (JObject)list[0];
             foreach (var jp in dict)
             {
-                fileds += string.Format("{0},", VerifyString(jp.Key));
+                fileds += string.Format("`{0}`,", VerifyString(jp.Key));
                 values += string.Format("'{0}',", VerifyString(jp.Value.ToString()));
             }
             fileds = fileds.Substring(0, fileds.Length - 1);
@@ -468,7 +470,7 @@ namespace ExpenseManageBack.Infrastructure
             string values = "";
             foreach (string key in dict.Keys)
             {
-                fileds += string.Format("{0},", VerifyString(key));
+                fileds += string.Format("`{0}`,", VerifyString(key));
                 //if(key == "Id")
                 //    values += string.Format("{0},", VerifyString(dict[key]));
                 //else
@@ -490,7 +492,7 @@ namespace ExpenseManageBack.Infrastructure
             string values = "";
             foreach (var jp in dict)
             {
-                fileds += string.Format("{0},", VerifyString(jp.Key));
+                fileds += string.Format("`{0}`,", VerifyString(jp.Key));
                 values += string.Format("'{0}',", VerifyString(jp.Value.ToString()));
             }
             fileds = fileds.Substring(0, fileds.Length - 1);
@@ -513,7 +515,7 @@ namespace ExpenseManageBack.Infrastructure
             DataRow row = dt.Rows[0];
             foreach (DataColumn clm in dt.Columns)
             {
-                fileds += string.Format("{0},", VerifyString(clm.ColumnName));
+                fileds += string.Format("`{0}`,", VerifyString(clm.ColumnName));
                 values += string.Format("'{0}',", VerifyString(row[clm.ColumnName].ToString()));
             }
             fileds = fileds.Substring(0, fileds.Length - 1);
@@ -596,7 +598,7 @@ namespace ExpenseManageBack.Infrastructure
                 sql += string.Format("Update {0} set ", tableName);
                 foreach (string key in dict.Keys)
                 {
-                    sql += string.Format("{0}='{1}', ", VerifyString(key)
+                    sql += string.Format("`{0}`='{1}', ", VerifyString(key)
                         , VerifyString(dict[key]));
                 }
                 sql = sql.Substring(0, sql.Length - 2);
@@ -618,7 +620,7 @@ namespace ExpenseManageBack.Infrastructure
                 sql += string.Format("Update {0} set ", tableName);
                 foreach (string key in dict.Keys)
                 {
-                    sql += string.Format("{0}='{1}', ", VerifyString(key)
+                    sql += string.Format("`{0}`='{1}', ", VerifyString(key)
                         , VerifyString(dict[key]));
                 }
                 sql = sql.Substring(0, sql.Length - 2);
@@ -639,7 +641,7 @@ namespace ExpenseManageBack.Infrastructure
                 sql += string.Format("Update {0} set ", tableName);
                 foreach (DataColumn clm in dt.Columns)
                 {
-                    sql += string.Format("{0}='{1}', ", VerifyString(clm.ColumnName)
+                    sql += string.Format("`{0}`='{1}', ", VerifyString(clm.ColumnName)
                         , VerifyString(row[clm.ColumnName].ToString()));
                 }
                 sql = sql.Substring(0, sql.Length - 2);
@@ -657,7 +659,7 @@ namespace ExpenseManageBack.Infrastructure
             string sql = string.Format("Update {0} set ", tableName);
             foreach (DataColumn clm in row.Table.Columns)
             {
-                sql += string.Format("{0}='{1}', ", VerifyString(clm.ColumnName)
+                sql += string.Format("`{0}`='{1}', ", VerifyString(clm.ColumnName)
                         , VerifyString(row[clm.ColumnName].ToString()));
             }
             sql = sql.Substring(0, sql.Length - 2);
@@ -674,7 +676,7 @@ namespace ExpenseManageBack.Infrastructure
             string sql = string.Format("Update {0} set ", tableName);
             foreach (string key in dict.Keys)
             {
-                sql += string.Format("{0}='{1}', ", VerifyString(key), VerifyString(dict[key]));
+                sql += string.Format("`{0}`='{1}', ", VerifyString(key), VerifyString(dict[key]));
             }
             sql = sql.Substring(0, sql.Length - 2);
             sql += string.Format(" {0}\r\n;", condition);
@@ -690,7 +692,7 @@ namespace ExpenseManageBack.Infrastructure
             string sql = string.Format("Update {0} set ", tableName);
             foreach (var jp in dict)
             {
-                sql += string.Format("{0}='{1}', ", VerifyString(jp.Key.ToString()), VerifyString(jp.Value.ToString()));
+                sql += string.Format("`{0}`='{1}', ", VerifyString(jp.Key.ToString()), VerifyString(jp.Value.ToString()));
             }
             sql = sql.Substring(0, sql.Length - 2);
             sql += string.Format(" {0}\r\n;", condition);
