@@ -19,8 +19,8 @@ namespace ExpenseManageBack.Infrastructure
     {
         private string CorpId = "";
         private string AppSecret = "";
-        private string AgentId = "";
-        private string AppName = "";
+        public string AgentId = "";
+        public string AppName = "";
         private HttpContext Context;
         private int UserInfoSaveCookieDays = 30;
         public string RedirectUri { get; set; }
@@ -318,15 +318,33 @@ namespace ExpenseManageBack.Infrastructure
             return res;
         }
         
-        public string SendWxMsg(string paraJson)
+        public Response<string> SendWxMsg(string paraJson)
         {
-            GetWxToken(out var token);
-            var url = string.Format("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + token);
+            Response<string> res = new Response<string>();
+            string WxToken = "";
+            if (!GetWxToken(out WxToken))//获取企业微信token失败
+            {
+                res.code = 1;
+                res.message = "获取企业微信token失败:" + WxToken;
+                return res;
+            }
+            var url = string.Format("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + WxToken);
         
-            return HttpHelper.Post(url,paraJson);
+            string getRes = HttpHelper.Post(url, paraJson);
+            Dictionary<string, object> dict = Json.ToObject<Dictionary<string, object>>(getRes);
+            if (Convert.ToInt32(dict["errcode"]) == 0)
+            {
+                res.Result = getRes;
+            }
+            else
+            {
+                res.code = Convert.ToInt32(dict["errcode"]);
+                res.message = dict["errmsg"].ToString();
+            }
+            return res;
         }
 
-        public string GetJsonAndSendWxMsg(string ids, string description, string url, string agentId)
+        public Response<string> GetJsonAndSendWxMsg(string ids, string description, string url, string agentId)
         {
             var jObject = new JObject {{"touser", ids}, {"msgtype", "textcard"}, {"agentid", agentId}};
             var innerJObject = new JObject {{"title", "审批通知"}, {"description", description}, {"url", url}};
@@ -428,6 +446,18 @@ namespace ExpenseManageBack.Infrastructure
                 res.message = dict["errmsg"].ToString();
             }
             return res;
+        }
+        
+        public Response<string> SendWxTextMsg(WxTextMessage msg)
+        {
+            string json = Json.ToJson(msg);
+            return SendWxMsg(json);
+        }
+
+        public Response<string> SendWxTextCardMessage(WxTextCardMessage msg)
+        {
+            string json = Json.ToJson(msg);
+            return SendWxMsg(json);
         }
     }
 }

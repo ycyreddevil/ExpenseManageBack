@@ -57,5 +57,21 @@ namespace ExpenseManageBack.Controllers
             cookie.DeleteCookie("userToken");
             return res;
         }
+
+        [HttpPost]
+        public Response<string> SendWxTextMessage(string text, string _touser = "@all")
+        {
+            WxHelper wx = new WxHelper(_accessor.HttpContext);
+            WxTextMessage msg = new WxTextMessage(Convert.ToInt32(wx.AgentId), text, _touser);
+            return wx.SendWxTextMsg(msg);
+        }
+
+        [HttpPost]
+        public Response<string> SendWxTextCardMessage(string _title, string _description, string _url, string _btntxt, string _touser = "@all")
+        {
+            WxHelper wx = new WxHelper(_accessor.HttpContext);
+            WxTextCardMessage msg = new WxTextCardMessage(Convert.ToInt32(wx.AgentId), _title, _description, _url, _btntxt);
+            return wx.SendWxTextCardMessage(msg);
+        }
     }
 }
