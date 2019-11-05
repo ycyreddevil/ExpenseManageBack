@@ -29,23 +29,24 @@ namespace ExpenseManageBack.Service
         {
             if (string.IsNullOrEmpty(travelApply.DocCode))
                 travelApply.DocCode = Encrypt.GenerateDocCode();
-            
+
             travelApply.WechatUserId = userInfo.WechatUserId;
             travelApply.UserName = userInfo.UserName;
-            
+
             // 找部门id
             if (!string.IsNullOrEmpty(travelApply.DepartmentName))
-                travelApply.DepartmentId = _unitWork.FindSingle<Department>(u => u.Name.Equals(travelApply.DepartmentName)).Id;
-            
+                travelApply.DepartmentId =
+                    _unitWork.FindSingle<Department>(u => u.Name.Equals(travelApply.DepartmentName)).Id;
+
             // 处理总金额
             travelApply.TotalMoney = travelApply.AccomodationFee + travelApply.TicketFee + travelApply.TollFee +
                                      travelApply.TravelAllowance;
-            
+
             if (!_unitWork.IsExist<TravelApply>(u => u.DocCode.Equals(travelApply.DocCode)))
                 _unitWork.Add(travelApply);
             else
                 _unitWork.Update(travelApply);
-            
+
             if (travelApply.Status.Equals("已提交"))
             {
                 // 新增记录到审批人表
@@ -60,9 +61,11 @@ namespace ExpenseManageBack.Service
                         WechatUserId = jarray["wechatUserId"].ToString()
                     };
                     approverList.Add(approver);
-                };
+                }
+
+                ;
                 _unitWork.BatchAdd(approverList.ToArray());
-                
+
                 // 新增记录到审批记录表
                 var record = new ApprovalRecord
                 {
@@ -105,22 +108,22 @@ namespace ExpenseManageBack.Service
         public JArray getApprover(int flowId, User user, string department)
         {
             var departmentId = _unitWork.FindSingle<Department>(u => u.Name.Equals(department)).Id;
-            
+
             var processJson = _unitWork.FindSingle<Flow>(u => u.Id == flowId).Json.ToObject<JArray>();
-            
+
             var result = new JArray();
 
             // 首先第一级是自己
             var level = 0;
             var approverJObject = new JObject
-                
+
             {
                 ["name"] = user.UserName,
                 ["wechatUserId"] = user.WechatUserId,
-                ["level"] = level ++
+                ["level"] = level++
             };
             result.Add(approverJObject);
-            
+
             foreach (var process in processJson)
             {
                 //指定人员审批
@@ -131,7 +134,7 @@ namespace ExpenseManageBack.Service
                     {
                         ["name"] = userName,
                         ["wechatUserId"] = _unitWork.FindSingle<User>(u => u.UserName.Equals(userName)).WechatUserId,
-                        ["level"] = level ++
+                        ["level"] = level++
                     };
                     if (checkApproverIfExist(result, approverJObject))
                         result.Add(approverJObject);
@@ -139,7 +142,7 @@ namespace ExpenseManageBack.Service
                 else if (process["type"].ToString() == "OneSuperior")
                 {
                     var leaderList = findDepartmentHeader(user, departmentId);
-                    
+
                     if (user != null) user = null;
 
                     if (leaderList.Count == 0) continue;
@@ -152,7 +155,7 @@ namespace ExpenseManageBack.Service
                         {
                             ["name"] = leader.UserName,
                             ["wechatUserId"] = leader.WechatUserId,
-                            ["level"] = level ++
+                            ["level"] = level++
                         };
                         if (checkApproverIfExist(result, approverJObject))
                             result.Add(approverJObject);
@@ -167,8 +170,8 @@ namespace ExpenseManageBack.Service
                     foreach (var finalDepartmentName in finalDepartmentNameList)
                     {
                         departmentName = UnitWork.FindSingle<Department>(u => u.Id == departmentId).Name;
-                        
-                        if (!departmentName.Contains(finalDepartmentName)) 
+
+                        if (!departmentName.Contains(finalDepartmentName))
                             continue;
 
                         _finalDepartmentName = finalDepartmentName;
@@ -184,7 +187,7 @@ namespace ExpenseManageBack.Service
                             var leaderList = findDepartmentHeader(user, departmentId);
 
                             if (user != null) user = null;
-                            
+
                             if (leaderList == null || leaderList.Count == 0)
                             {
                                 continue;
@@ -196,12 +199,12 @@ namespace ExpenseManageBack.Service
                                 {
                                     ["name"] = leader.UserName,
                                     ["wechatUserId"] = leader.WechatUserId,
-                                    ["level"] = level ++
+                                    ["level"] = level++
                                 };
                                 if (checkApproverIfExist(result, approverJObject))
                                     result.Add(approverJObject);
                             }
-                            
+
                             departmentId = UnitWork.FindSingle<Department>(u => u.Id == departmentId).ParentId;
                         }
 
@@ -218,7 +221,7 @@ namespace ExpenseManageBack.Service
                             {
                                 ["name"] = leader.UserName,
                                 ["wechatUserId"] = leader.WechatUserId,
-                                ["level"] = level ++
+                                ["level"] = level++
                             };
                             if (checkApproverIfExist(result, approverJObject))
                                 result.Add(approverJObject);
@@ -230,10 +233,10 @@ namespace ExpenseManageBack.Service
                     }
                 }
             }
-            
+
             return result;
         }
-        
+
         /// <summary>
         /// 判断找出的审批人是否已经存在
         /// </summary>
@@ -270,19 +273,20 @@ namespace ExpenseManageBack.Service
                         u.DepartmentId == departmentUser.DepartmentId && u.IsLeader == 1)
                     on us.WechatUserId equals ud.WechatUserId
                 select us;
-            
+
             if (departmentUser.IsLeader == 1)
             {
                 //如果是领导 则找父部门领导
-                var parentDepartmentId = _unitWork.FindSingle<Department>(u => u.Id == departmentUser.DepartmentId).ParentId;
-                        
+                var parentDepartmentId =
+                    _unitWork.FindSingle<Department>(u => u.Id == departmentUser.DepartmentId).ParentId;
+
                 query = from us in _unitWork.Find<User>(null).ToList()
                     join ud in _unitWork.Find<UserDepartment>(u =>
                             u.DepartmentId == parentDepartmentId && u.IsLeader == 1)
                         on us.WechatUserId equals ud.WechatUserId
                     select us;
             }
-            
+
             return query.ToList();
         }
 
@@ -295,7 +299,7 @@ namespace ExpenseManageBack.Service
         {
             // 获取单据详情
             var travelApply = _unitWork.FindSingle<TravelApply>(u => u.DocCode.Equals(docCode));
-            
+
             // 获取审批记录
             var query = from approvalRecord in _unitWork
                     .Find<ApprovalRecord>(u => u.DocumentTableName.Equals("差旅申请") && u.DocCode.Equals(docCode)).ToList()
@@ -310,25 +314,28 @@ namespace ExpenseManageBack.Service
                 };
 
             var record = query.ToList();
-            
+
             // 获取审批人
-            query = from approvalApprover in _unitWork.Find<ApprovalApprover>(u => u.DocumentTableName.Equals("差旅申请") && u.DocCode.Equals(docCode)).ToList()
-                join user in _unitWork.Find<User>(null).ToList() on approvalApprover.WechatUserId equals user.WechatUserId
+            query = from approvalApprover in _unitWork
+                    .Find<ApprovalApprover>(u => u.DocumentTableName.Equals("差旅申请") && u.DocCode.Equals(docCode))
+                    .ToList()
+                join user in _unitWork.Find<User>(null).ToList() on approvalApprover.WechatUserId equals user
+                    .WechatUserId
                 select new Dictionary<string, object>
                 {
                     ["level"] = approvalApprover.Level,
                     ["userName"] = user.UserName
                 };
-            
+
             var approver = query.ToList();
-            
+
             var result = new Dictionary<string, object>
             {
                 ["travelApply"] = travelApply,
                 ["record"] = record,
                 ["approver"] = approver
             };
-            
+
             return null;
         }
 
@@ -342,7 +349,8 @@ namespace ExpenseManageBack.Service
         /// <returns></returns>
         public List<TravelApply> mySubmitted(string wechatUserId, int year, int month, string key)
         {
-            var iQueryableList = _unitWork.Find<TravelApply>(u => u.WechatUserId.Equals(wechatUserId) && !u.Status.Equals("草稿"));
+            var iQueryableList =
+                _unitWork.Find<TravelApply>(u => u.WechatUserId.Equals(wechatUserId) && !u.Status.Equals("草稿"));
 
             if (!string.IsNullOrEmpty(key))
             {
@@ -365,25 +373,36 @@ namespace ExpenseManageBack.Service
         /// <param name="month"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public List<TravelApply> myApproval(string wechatUserId, int year, int month, string key)
+        public List<TravelApplyListModel> myApproval(string wechatUserId, int year, int month, string key)
         {
             var query = from travelApply in _unitWork.Find<TravelApply>(null).ToList()
                 join record in
                     _unitWork.Find<ApprovalRecord>(u =>
-                        u.DocumentTableName.Equals("差旅申请") && u.WechatUserId.Equals(wechatUserId))
+                        u.DocumentTableName.Equals("差旅申请") && u.WechatUserId.Equals(wechatUserId) &&
+                        !u.ApprovalResult.Equals("单据提交") && !u.ApprovalResult.Equals("撤销"))
                     on travelApply.DocCode equals record.DocCode
-                select travelApply;
-            
+                join user in _unitWork.Find<User>(null).ToList() on travelApply.WechatUserId equals user.WechatUserId
+                select new TravelApplyListModel
+                {
+                    UserName = user.UserName,
+                    Date = travelApply.Date,
+                    Destination = travelApply.Destination,
+                    Departure = travelApply.Departure,
+                    TotalMoney = travelApply.TotalMoney,
+                    DocCode = travelApply.DocCode
+                };
+
             if (!string.IsNullOrEmpty(key))
             {
-                query = query.Where(u => u.Departure.Contains(key) || u.Destination.Contains(key));
+                query = query.Where(u =>
+                    u.Departure.Contains(key) || u.Destination.Contains(key) || u.UserName.Contains(key));
             }
 
             if (year != 0 && month != 0)
             {
-                query = query.Where(u => u.Date.Year == year && u.Date.Month == month - 1);
+                query = query.Where(u => u.Date.Year == year && u.Date.Month == month);
             }
-            
+
             return query.ToList();
         }
 
@@ -395,26 +414,36 @@ namespace ExpenseManageBack.Service
         /// <param name="month"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public List<TravelApply> myNotApproval(string wechatUserId, int year, int month, string key)
+        public List<TravelApplyListModel> myNotApproval(string wechatUserId, int year, int month, string key)
         {
             var query = from travelApply in _unitWork.Find<TravelApply>(null).ToList()
                 join approvalApprover in _unitWork.Find<ApprovalApprover>(
                         u => u.DocumentTableName.Equals("差旅申请") && u.WechatUserId.Equals(wechatUserId)).ToList()
                     on new {u = travelApply.Level, y = travelApply.DocCode} equals new
                     {
-                        u = approvalApprover.Level,
+                        u = approvalApprover.Level - 1,
                         y = approvalApprover.DocCode
                     }
-                select travelApply;
-            
+                join user in _unitWork.Find<User>(null).ToList() on travelApply.WechatUserId equals user.WechatUserId
+                select new TravelApplyListModel
+                {
+                    UserName = user.UserName,
+                    Date = travelApply.Date,
+                    Destination = travelApply.Destination,
+                    Departure = travelApply.Departure,
+                    TotalMoney = travelApply.TotalMoney,
+                    DocCode = travelApply.DocCode
+                };
+
             if (!string.IsNullOrEmpty(key))
             {
-                query = query.Where(u => u.Departure.Contains(key) || u.Destination.Contains(key));
+                query = query.Where(u =>
+                    u.Departure.Contains(key) || u.Destination.Contains(key) || u.UserName.Contains(key));
             }
 
             if (year != 0 && month != 0)
             {
-                query = query.Where(u => u.Date.Year == year && u.Date.Month == month - 1);
+                query = query.Where(u => u.Date.Year == year && u.Date.Month == month);
             }
 
             return query.ToList();
@@ -428,9 +457,20 @@ namespace ExpenseManageBack.Service
         /// <param name="month"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public List<TravelApply> myDraft(string wechatUserId, int year, int month, string key)
+        public List<TravelApplyListModel> myDraft(string wechatUserId, int year, int month, string key, string userName)
         {
-            var iQueryableList = _unitWork.Find<TravelApply>(u => u.WechatUserId.Equals(wechatUserId) && u.Status.Equals("草稿"));
+            var iQueryableList =
+                from travelApply in _unitWork.Find<TravelApply>(u =>
+                    u.WechatUserId.Equals(wechatUserId) && u.Status.Equals("草稿"))
+                select new TravelApplyListModel
+                {
+                    UserName = userName,
+                    Date = travelApply.Date,
+                    Destination = travelApply.Destination,
+                    Departure = travelApply.Departure,
+                    TotalMoney = travelApply.TotalMoney,
+                    DocCode = travelApply.DocCode
+                };
 
             if (!string.IsNullOrEmpty(key))
             {
@@ -439,7 +479,7 @@ namespace ExpenseManageBack.Service
 
             if (year != 0 && month != 0)
             {
-                iQueryableList = iQueryableList.Where(u => u.Date.Year == year && u.Date.Month == month - 1);
+                iQueryableList = iQueryableList.Where(u => u.Date.Year == year && u.Date.Month == month);
             }
 
             return iQueryableList.ToList();
@@ -453,11 +493,11 @@ namespace ExpenseManageBack.Service
         public Response approval(string docCode, string wechatUserId, string result, string opinion)
         {
             var travelApply = _unitWork.FindSingle<TravelApply>(u => u.DocCode.Equals(docCode));
-            
+
             // 首先判断该审批人是否有权限 防止重复点击
             var rightApprover = _unitWork.Find<ApprovalApprover>(u =>
-                u.DocCode.Equals(docCode) && u.Level == travelApply.Level && u.WechatUserId.Equals(wechatUserId));
-            
+                u.DocCode.Equals(docCode) && u.Level == travelApply.Level + 1 && u.WechatUserId.Equals(wechatUserId));
+
             if (rightApprover == null)
             {
                 return new Response
@@ -467,19 +507,6 @@ namespace ExpenseManageBack.Service
                 };
             }
 
-            // 保存审批记录
-            var record = new ApprovalRecord
-            {
-                DocCode = docCode,
-                Level = travelApply.Level,
-                ApprovalOpinions = opinion,
-                ApprovalResult = result,
-                WechatUserId = wechatUserId,
-                DocumentTableName = "差旅申请"
-            };
-            _unitWork.Add(record);
-            _unitWork.Save();
-            
             if ("同意".Equals(result))
             {
                 agree(travelApply, docCode);
@@ -488,11 +515,24 @@ namespace ExpenseManageBack.Service
             {
                 reject(travelApply);
             }
-            
+
+            // 保存审批记录
+            var record = new ApprovalRecord
+            {
+                DocCode = docCode,
+                Level = travelApply.Level + 1,
+                ApprovalOpinions = opinion,
+                ApprovalResult = result,
+                WechatUserId = wechatUserId,
+                DocumentTableName = "差旅申请"
+            };
+            _unitWork.Add(record);
+
             _unitWork.Save();
-            return null;
+
+            return new Response();
         }
-        
+
         /// <summary>
         /// 同意报销单
         /// </summary>
@@ -501,30 +541,35 @@ namespace ExpenseManageBack.Service
         private void agree(TravelApply travelApply, string docCode)
         {
             // 判断是否流程结束
-            var totalStep = _unitWork.Find<TravelApply>(u => u.DocCode.Equals(docCode)).ToList().Count;
+            var totalStep = _unitWork
+                .Find<ApprovalApprover>(u => u.DocCode.Equals(docCode) && u.DocumentTableName.Equals("差旅申请")).ToList()
+                .Count;
 
             if (totalStep == travelApply.Level + 1)
             {
                 // 流程结束
                 travelApply.Status = "已审批";
                 _unitWork.Update(travelApply);
-                    
+
                 // 发通知给提交人审批流程结束
-            
+
                 // 发通知给知悉人
             }
             else
             {
                 // 流程没结束
-                travelApply.Level = travelApply.Level + 1;
+                travelApply.Status = "审批中";
                 _unitWork.Update(travelApply);
 
                 // 发通知给提交人 已被审批
-                
+
                 // 发通知给知悉人
-                
+
                 // 发通知给下一级审批人
             }
+
+            travelApply.Level = travelApply.Level + 1;
+            _unitWork.Update(travelApply);
         }
 
         /// <summary>
@@ -534,17 +579,42 @@ namespace ExpenseManageBack.Service
         private void reject(TravelApply travelApply)
         {
             travelApply.Status = "已拒绝";
-            travelApply.Level = 0;
+            travelApply.Level = travelApply.Level + 1;
             _unitWork.Update(travelApply);
-                
+
             // 发通知给提交人 审批被拒绝
 
             // 发通知给知悉人
         }
 
-        public void withraw()
+        /// <summary>
+        /// 撤销单据
+        /// </summary>
+        /// <param name="docCode"></param>
+        public void withdrew(string docCode, string wechatUserId)
         {
-            
+            var travelApply = _unitWork.FindSingle<TravelApply>(u => u.DocCode.Equals(docCode));
+
+            travelApply.Status = "草稿";
+            travelApply.Level = -1;
+
+            _unitWork.Update(travelApply);
+
+            // 保存审批记录
+            var record = new ApprovalRecord
+            {
+                DocCode = docCode,
+                Level = -1,
+                ApprovalResult = "撤销",
+                WechatUserId = wechatUserId,
+                DocumentTableName = "差旅申请"
+            };
+            _unitWork.Add(record);
+
+            // 清空审批人
+            _unitWork.Delete<ApprovalApprover>(u => u.DocCode.Equals(docCode) && u.DocumentTableName.Equals("差旅申请"));
+
+            _unitWork.Save();
         }
 
         /// <summary>
@@ -583,9 +653,11 @@ namespace ExpenseManageBack.Service
 
             var result = new Dictionary<string, object>
             {
-                {"data", data}, {"record", _record}, {"approver", _approver}
+                {"data", data},
+                {"record", _record},
+                {"approver", _approver}
             };
-            
+
             return result;
         }
     }

@@ -25,8 +25,6 @@ namespace ExpenseManageBack.Controllers
             _accessor = accessor;
             WxHelper wx = new WxHelper(_accessor.HttpContext, "travelApply");
             userInfo = wx.CheckAndGetUserInfo();
-            if (userInfo.code == 2)
-                Redirect(userInfo.message);
         }
         
         /// <summary>
@@ -126,81 +124,6 @@ namespace ExpenseManageBack.Controllers
         }
         
         /// <summary>
-        /// 获取我已审批 差旅申请
-        /// </summary>
-        /// <param name="year"></param>
-        /// <param name="month"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public Response<List<TravelApply>> myApproval(int year, int month, string key)
-        {
-            var resp = new Response<List<TravelApply>>();
-
-            try
-            {
-                resp.Result = _service.myApproval(userInfo.Result.WechatUserId, year, month, key);
-            }
-            catch (Exception e)
-            {
-                resp.code = 500;
-                resp.message = e.Message;
-            }
-            
-            return resp;
-        }
-        
-        /// <summary>
-        /// 获取待我审批 差旅申请
-        /// </summary>
-        /// <param name="year"></param>
-        /// <param name="month"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public Response<List<TravelApply>> myNotApproval(int year, int month, string key)
-        {
-            var resp = new Response<List<TravelApply>>();
-
-            try
-            {
-                resp.Result = _service.myNotApproval(userInfo.Result.WechatUserId, year, month, key);
-            }
-            catch (Exception e)
-            {
-                resp.code = 500;
-                resp.message = e.Message;
-            }
-            
-            return resp;
-        }
-        
-        /// <summary>
-        /// 获取草稿 差旅申请
-        /// </summary>
-        /// <param name="year"></param>
-        /// <param name="month"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public Response<List<TravelApply>> myDraft(int year, int month, string key)
-        {
-            var resp = new Response<List<TravelApply>>();
-
-            try
-            {
-                resp.Result = _service.myDraft(userInfo.Result.WechatUserId, year, month, key);
-            }
-            catch (Exception e)
-            {
-                resp.code = 500;
-                resp.message = e.Message;
-            }
-            
-            return resp;
-        }
-        
-        /// <summary>
         /// 审批
         /// </summary>
         /// <param name="docCode"></param>
@@ -238,6 +161,60 @@ namespace ExpenseManageBack.Controllers
             try
             {
                 result.Result = _service.getByCode(docCode);
+            }
+            catch (Exception e)
+            {
+                result.code = 500;
+                result.message = e.Message;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 差旅申请单 撤回
+        /// </summary>
+        /// <param name="docCode"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response withdrew(string docCode)
+        {
+            var result = new Response();
+
+            try
+            {
+                _service.withdrew(docCode, userInfo.Result.WechatUserId);
+            }
+            catch (Exception e)
+            {
+                result.code = 500;
+                result.message = e.Message;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 与我相关的差旅申请单
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="keyword"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<TravelApplyListModel>> relateToMe(string type, int year, int month, string keyword)
+        {
+            var result = new Response<List<TravelApplyListModel>>();
+
+            try
+            {
+                if ("beApproved".Equals(type))
+                    result.Result = _service.myNotApproval(userInfo.Result.WechatUserId, year, month, keyword);
+                else if ("hasApproved".Equals(type))
+                    result.Result = _service.myApproval(userInfo.Result.WechatUserId, year, month, keyword);
+                else if ("draftBox".Equals(type))
+                    result.Result = _service.myDraft(userInfo.Result.WechatUserId, year, month, keyword, userInfo.Result.UserName);
             }
             catch (Exception e)
             {
