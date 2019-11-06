@@ -57,17 +57,19 @@ namespace ExpenseManageBack.Controllers
                 d.Order  = Convert.ToInt64(dict["order"]);
                 listDepart.Add(d);
             }
+            int rootIndex = -1;
             for(int i=0;i<listDepart.Count;i++)
             {
-                foreach(Department d in listDepart)
+                if (listDepart[i].ParentId == 0)
                 {
-                    if(d.Id == listDepart[i].ParentId)
-                    {
-                        listDepart[i].ParentName = d.Name;
-                        break;
-                    }
-                }
+                    rootIndex = i;
+                    listDepart[rootIndex].FullName = listDepart[rootIndex].Name;
+                    break;
+                }                    
             }
+
+            SetAllSubDepartmentFullNameAndParentName(ref listDepart, rootIndex);
+
             try
             {
                 CrudHelper<Department> crud = new CrudHelper<Department>("department");
@@ -82,6 +84,23 @@ namespace ExpenseManageBack.Controllers
             
 
             return res;
+        }
+
+        private void SetAllSubDepartmentFullNameAndParentName(ref List<Department> list, int index)
+        {
+            Department parentDepart = list[index];
+            //if (parentDepart.ParentId == 0)
+            //    return;
+            for(int i=0;i<list.Count;i++)
+            {
+                Department subDepart = list[i];
+                if (subDepart.ParentId == parentDepart.Id)
+                {
+                    subDepart.ParentName = parentDepart.Name;
+                    subDepart.FullName = parentDepart.FullName + "/" + subDepart.Name;
+                    SetAllSubDepartmentFullNameAndParentName(ref list, i);
+                }
+            }
         }
 
         [HttpGet]
