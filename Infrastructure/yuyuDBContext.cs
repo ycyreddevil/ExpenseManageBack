@@ -19,5 +19,6 @@ namespace yuyu.Infrastructure
         public virtual DbSet<TravelApply> TravelApplys { get; set; }
         public virtual DbSet<ApprovalApprover> ApprovalApprovers { get; set; }
         public virtual DbSet<ApprovalRecord> ApprovalRecords { get; set; }
+        public virtual DbSet<Budget> Budgets { get; set; }
     }
 }
