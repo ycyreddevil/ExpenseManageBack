@@ -8,6 +8,7 @@ namespace ExpenseManageBack.Model
         public int Id { get; set; }
         public int ParentId { get; set; }
         public string Name { get; set; }
+        public string FullName { get; set; }
         public string ParentName { get; set; }
         public long Order { get; set; }
 
@@ -16,6 +17,7 @@ namespace ExpenseManageBack.Model
             Id = 0;
             ParentId = 0;
             Name = string.Empty;
+            FullName = string.Empty;
             ParentName = string.Empty;
             Order = 1;
         }
